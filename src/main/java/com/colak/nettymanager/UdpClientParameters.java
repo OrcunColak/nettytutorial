@@ -1,3 +1,5 @@
+package com.colak.nettymanager;
+
 import io.netty.channel.SimpleChannelInboundHanler;
 import io.netty.channel.socket.DatagramPacket;
 
