@@ -49,7 +49,7 @@ public class NettyManager {
             @Override
             protected void initChannel(Channel channel) {
               channel.pipeline()
-                addLast(parameters.handler());
+                addLast(parameters.inboundHandler());
             }
         });
         
