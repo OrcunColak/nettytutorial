@@ -1,5 +1,6 @@
 package com.colak.nettymanager;
 
+import com.colak.nettymanager.managers.TimerManager;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -34,6 +35,8 @@ public class NettyManager {
 
     private final ConcurrentMap<String, ScheduledFuture<?>> timers = new ConcurrentHashMap<>();
 
+    private final TimerManager timerManager;
+
     public NettyManager() {
         this(1, 4);
     }
@@ -41,6 +44,7 @@ public class NettyManager {
     public NettyManager(int bossThread, int workerThreads) {
         bossGroup = new MultiThreadIoEventLoopGroup(bossThread, NioIoHandler.newFactory());
         workerGroup = new MultiThreadIoEventLoopGroup(workerThreads, NioIoHandler.newFactory());
+        timerManager = new TimerManager(workerGroup);
     }
 
     public boolean addTcpServer(TcpServerParameters parameters) {
@@ -119,45 +123,28 @@ public class NettyManager {
     }
 
     public boolean startTimer(String timerId, Runnable runnable, long delay, long period) {
-        return startTimer(timerId, runnable, delay, period, TimeUnit.MILLISECONDS);
+        return timerManager.scheduleFixedRateTimer(timerId, runnable, delay, period);
     }
 
     public boolean startTimer(String timerId, Runnable runnable, long delay, long period, TimeUnit timeUnit) {
-        boolean result = false;
-        if (timers.containsKey(timerId) && timers.get(timerId).isCancelled()) {
-            logger.info("Timer with ID {} is already running", timerId);
-        } else {
-            ScheduledFuture<?> scheduledFuture = workerGroup.scheduleAtFixedRate(runnable, delay, period, timeUnit);
-            timers.put(timerId, scheduledFuture);
-            result = true;
-            logger.info("Timer with ID {} started", timerId);
-        }
-        return result;
+        return timerManager.scheduleFixedRateTimer(timerId, runnable, delay, period, timeUnit);
     }
 
-    public void scheduleSingleShotTimer(Runnable runnable, long delay) {
-        workerGroup.schedule(runnable, delay, TimeUnit.MILLISECONDS);
+    public void scheduleSingleShotTimer(SingleShotTimerParameters parameters) {
+        timerManager.scheduleSingleShotTimer(parameters);
     }
 
     public void scheduleSingleShotTimer(Runnable runnable, long delay, TimeUnit timeUnit) {
-        workerGroup.schedule(runnable, delay, timeUnit);
+        timerManager.scheduleSingleShotTimer(runnable, delay, timeUnit);
     }
 
     public void stopTimer(String timerId) {
-        ScheduledFuture<?> scheduledFuture = timers.get(timerId);
-        if (scheduledFuture != null && !scheduledFuture.isCancelled()) {
-            // false means do not interrupt if already running
-            scheduledFuture.cancel(true);
-            timers.remove(timerId);
-            logger.info("Timer with ID {} stopped", timerId);
-        }
+        timerManager.stopTimer(timerId);
     }
 
     // When this method is called, new timers should not be added
     public void stopAllTimers() {
-        timers.forEach((timerId, _) -> stopTimer(timerId));
-        timers.clear();
-        logger.info("All timers stopped");
+        timerManager.shutdown();
     }
 
     public boolean shutdownChannel(String channelId) {
