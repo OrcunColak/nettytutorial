@@ -33,8 +33,6 @@ public class NettyManager {
 
     private final ConcurrentMap<String, Channel> channels = new ConcurrentHashMap<>();
 
-    private final ConcurrentMap<String, ScheduledFuture<?>> timers = new ConcurrentHashMap<>();
-
     private final TimerManager timerManager;
 
     public NettyManager() {
@@ -44,6 +42,7 @@ public class NettyManager {
     public NettyManager(int bossThread, int workerThreads) {
         bossGroup = new MultiThreadIoEventLoopGroup(bossThread, NioIoHandler.newFactory());
         workerGroup = new MultiThreadIoEventLoopGroup(workerThreads, NioIoHandler.newFactory());
+
         timerManager = new TimerManager(workerGroup);
     }
 
@@ -122,11 +121,11 @@ public class NettyManager {
         return result;
     }
 
-    public boolean startTimer(String timerId, Runnable runnable, long delay, long period) {
+    public boolean scheduleFixedRateTimer(String timerId, Runnable runnable, long delay, long period) {
         return timerManager.scheduleFixedRateTimer(timerId, runnable, delay, period);
     }
 
-    public boolean startTimer(String timerId, Runnable runnable, long delay, long period, TimeUnit timeUnit) {
+    public boolean scheduleFixedRateTimer(String timerId, Runnable runnable, long delay, long period, TimeUnit timeUnit) {
         return timerManager.scheduleFixedRateTimer(timerId, runnable, delay, period, timeUnit);
     }
 
