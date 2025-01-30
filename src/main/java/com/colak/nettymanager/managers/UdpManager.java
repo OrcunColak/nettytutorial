@@ -6,6 +6,7 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +72,16 @@ public class UdpManager {
             Thread.currentThread().interrupt();
         }
         return result;
+    }
+
+    public boolean sendUdpMessage(String channelId, DatagramPacket message) {
+        boolean channelExists = false;
+        Channel channel = channels.get(channelId);
+        if (channel instanceof NioDatagramChannel udpChannel) {
+            channelExists = true;
+            udpChannel.writeAndFlush(message);
+        }
+        return channelExists;
     }
 
     public boolean shutdownChannel(String channelId) {

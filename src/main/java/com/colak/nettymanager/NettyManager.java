@@ -6,6 +6,7 @@ import com.colak.nettymanager.managers.UdpManager;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.nio.NioIoHandler;
+import io.netty.channel.socket.DatagramPacket;
 
 public class NettyManager {
 
@@ -44,6 +45,14 @@ public class NettyManager {
 
     public boolean addUdpClient(UdpClientParameters parameters) {
         return udpManager.addUdpClient(parameters);
+    }
+
+    public boolean sendTcpMessage(String channelId, byte[] message) {
+        return tcpManager.sendTcpMessage(channelId,message);
+    }
+
+    public boolean sendUdpMessage(String channelId, DatagramPacket message) {
+        return udpManager.sendUdpMessage(channelId,message);
     }
 
     public void scheduleFixedRateTimer(FixedRateTimerParameters parameters) {

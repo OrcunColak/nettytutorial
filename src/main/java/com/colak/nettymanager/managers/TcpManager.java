@@ -4,8 +4,11 @@ import com.colak.nettymanager.TcpClientParameters;
 import com.colak.nettymanager.TcpServerParameters;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -44,7 +47,9 @@ public class TcpManager {
                             channel.pipeline()
                                     .addLast(parameters.inboundHandler());
                         }
-                    });
+                    })
+                    .option(ChannelOption.SO_BACKLOG, 128)
+                    .childOption(ChannelOption.SO_KEEPALIVE, true);
 
             Channel channel = bootstrap.bind(parameters.port())
                     .sync()
@@ -87,6 +92,17 @@ public class TcpManager {
         return resut;
     }
 
+
+    public boolean sendTcpMessage(String channelId, byte[] message) {
+        boolean channelExists = false;
+        Channel channel = channels.get(channelId);
+        if (channel instanceof NioServerSocketChannel || channel instanceof NioSocketChannel) {
+            channelExists = true;
+            ByteBuf byteBuf = Unpooled.wrappedBuffer(message);
+            channel.writeAndFlush(byteBuf);
+        }
+        return channelExists;
+    }
 
     public boolean shutdownChannel(String channelId) {
         boolean result = false;
