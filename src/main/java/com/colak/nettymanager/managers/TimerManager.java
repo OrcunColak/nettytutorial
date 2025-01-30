@@ -1,5 +1,6 @@
 package com.colak.nettymanager.managers;
 
+import com.colak.nettymanager.FixedRateTimerParameters;
 import com.colak.nettymanager.SingleShotTimerParameters;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.ScheduledFuture;
@@ -8,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
 
 public class TimerManager {
 
@@ -22,30 +22,22 @@ public class TimerManager {
         this.workerGroup = workerGroup;
     }
 
-
-    public boolean scheduleFixedRateTimer(String timerId, Runnable runnable, long delay, long period) {
-        return scheduleFixedRateTimer(timerId, runnable, delay, period, TimeUnit.MILLISECONDS);
-    }
-
-    public boolean scheduleFixedRateTimer(String timerId, Runnable runnable, long delay, long period, TimeUnit timeUnit) {
-        boolean result = false;
-        if (timers.containsKey(timerId) && timers.get(timerId).isCancelled()) {
+    public void scheduleFixedRateTimer(FixedRateTimerParameters parameters) {
+        String timerId = parameters.timerId();
+        if (timers.containsKey(timerId) && !timers.get(timerId).isCancelled()) {
             logger.info("Timer with ID {} is already running", timerId);
-        } else {
-            ScheduledFuture<?> scheduledFuture = workerGroup.scheduleAtFixedRate(runnable, delay, period, timeUnit);
-            timers.put(timerId, scheduledFuture);
-            result = true;
-            logger.info("Timer with ID {} started", timerId);
+            return;
         }
-        return result;
+
+        ScheduledFuture<?> scheduledFuture = workerGroup.scheduleAtFixedRate(parameters.runnable(), parameters.delay(),
+                parameters.period(), parameters.timeUnit());
+        timers.put(timerId, scheduledFuture);
+        logger.info("Timer with ID {} started", timerId);
+
     }
 
     public void scheduleSingleShotTimer(SingleShotTimerParameters parameters) {
-        workerGroup.schedule(parameters.runnable(), parameters.delay(), TimeUnit.MILLISECONDS);
-    }
-
-    public void scheduleSingleShotTimer(Runnable runnable, long delay, TimeUnit timeUnit) {
-        workerGroup.schedule(runnable, delay, timeUnit);
+        workerGroup.schedule(parameters.runnable(), parameters.delay(), parameters.timeUnit());
     }
 
     public void stopTimer(String timerId) {
