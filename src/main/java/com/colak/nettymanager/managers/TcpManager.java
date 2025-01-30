@@ -52,7 +52,7 @@ public class TcpManager {
                                     // Add the exception handler
                                     .addLast(new ExceptionHandler(clientId))
                                     // User-provided handler
-                                    .addLast(parameters.inboundHandler());
+                                    .addLast(parameters.inboundHandlerSupplier().get());
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)
@@ -115,14 +115,20 @@ public class TcpManager {
             super.channelActive(ctx);
         }
 
+        // Called when IOException or a ClosedChannelException occurs
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
             // Log the exception
             logger.error("Exception in TCP communication with ID {}", channelId, cause);
+
+            // Propagate the exception to the next handler in the pipeline
+            ctx.fireExceptionCaught(cause);
+
             // Close the channel if an exception occurs
             ctx.close();
         }
 
+        // Called when channel is closed
         @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
             // Remove the channel from the map when it becomes inactive
@@ -160,6 +166,7 @@ public class TcpManager {
     }
 
     public void shutdown() {
+        // Close all channels
         channels.values().forEach(Channel::close);
         channels.clear();
     }

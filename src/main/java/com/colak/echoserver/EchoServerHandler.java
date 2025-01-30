@@ -1,14 +1,16 @@
 package com.colak.echoserver;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@ChannelHandler.Sharable
 public class EchoServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
+
+    public EchoServerHandler() {
+        log.info("EchoServerHandler is created");
+    }
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, ByteBuf msg) {

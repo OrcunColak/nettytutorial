@@ -16,7 +16,9 @@ public class EchoServer {
     }
 
     public void start() {
-        TcpServerParameters parameters = new TcpServerParameters("echoServerChannel", port, new EchoServerHandler());
+        TcpServerParameters parameters = new TcpServerParameters("echoServerChannel",
+                port,
+                EchoServerHandler::new);
         nettyManager.addTcpServer(parameters);
     }
 

@@ -1,7 +1,8 @@
 package com.colak.nettymanager;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.ChannelInboundHandler;
 
-public record TcpServerParameters(String channelId, int port, SimpleChannelInboundHandler<ByteBuf> inboundHandler) {
+import java.util.function.Supplier;
+
+public record TcpServerParameters(String channelId, int port, Supplier<ChannelInboundHandler> inboundHandlerSupplier) {
 }
