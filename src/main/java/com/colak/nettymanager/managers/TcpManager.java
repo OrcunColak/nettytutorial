@@ -7,6 +7,8 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -17,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -43,8 +46,12 @@ public class TcpManager {
                     .channel(NioServerSocketChannel.class)
                     .childHandler(new ChannelInitializer<>() {
                         @Override
-                        protected void initChannel(Channel channel) throws Exception {
+                        protected void initChannel(Channel channel) {
+                            String clientId = UUID.randomUUID().toString(); // Generate a unique ID for each client
                             channel.pipeline()
+                                    // Add the exception handler
+                                    .addLast(new ExceptionHandler(clientId))
+                                    // User-provided handler
                                     .addLast(parameters.inboundHandler());
                         }
                     })
@@ -92,6 +99,38 @@ public class TcpManager {
         return resut;
     }
 
+    // Exception handler class
+    private class ExceptionHandler extends ChannelInboundHandlerAdapter {
+        private final String channelId;
+
+        public ExceptionHandler(String channelId) {
+            this.channelId = channelId;
+        }
+
+        @Override
+        public void channelActive(ChannelHandlerContext ctx) throws Exception {
+            // Add the client channel to the map when it becomes active
+            channels.put(channelId, ctx.channel());
+            logger.info("Client connected: {} with ID: {}", ctx.channel().remoteAddress(), channelId);
+            super.channelActive(ctx);
+        }
+
+        @Override
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+            // Log the exception
+            logger.error("Exception in TCP communication with ID {}", channelId, cause);
+            // Close the channel if an exception occurs
+            ctx.close();
+        }
+
+        @Override
+        public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+            // Remove the channel from the map when it becomes inactive
+            channels.remove(channelId);
+            logger.info("Channel with ID {} inactive: {}", channelId, ctx.channel().remoteAddress());
+            super.channelInactive(ctx);
+        }
+    }
 
     public boolean sendTcpMessage(String channelId, byte[] message) {
         boolean channelExists = false;
