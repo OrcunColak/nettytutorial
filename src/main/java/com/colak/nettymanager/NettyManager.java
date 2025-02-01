@@ -7,6 +7,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.DatagramPacket;
+import io.netty.util.concurrent.DefaultThreadFactory;
 
 public class NettyManager {
 
@@ -18,13 +19,19 @@ public class NettyManager {
     private final TcpManager tcpManager;
     private final UdpManager udpManager;
 
-    public NettyManager() {
-        this(1, 4);
-    }
 
-    public NettyManager(int bossThread, int workerThreads) {
-        bossGroup = new MultiThreadIoEventLoopGroup(bossThread, NioIoHandler.newFactory());
-        workerGroup = new MultiThreadIoEventLoopGroup(workerThreads, NioIoHandler.newFactory());
+    public NettyManager(NettyManagerParameters parameters) {
+        if (parameters.executor() != null) {
+            bossGroup = new MultiThreadIoEventLoopGroup(parameters.bossThread(), NioIoHandler.newFactory());
+            workerGroup = new MultiThreadIoEventLoopGroup(parameters.workerThreads(), parameters.executor(), NioIoHandler.newFactory());
+        } else {
+            DefaultThreadFactory bossThreadFactory = new DefaultThreadFactory("netty-boss");
+            bossGroup = new MultiThreadIoEventLoopGroup(parameters.bossThread(), bossThreadFactory, NioIoHandler.newFactory());
+
+            // Create a custom thread factory with a specific name prefix
+            DefaultThreadFactory workerThreadFactory = new DefaultThreadFactory("netty-worker");
+            workerGroup = new MultiThreadIoEventLoopGroup(parameters.workerThreads(), workerThreadFactory, NioIoHandler.newFactory());
+        }
 
         timerManager = new TimerManager(workerGroup);
         tcpManager = new TcpManager(bossGroup, workerGroup);
@@ -48,11 +55,11 @@ public class NettyManager {
     }
 
     public boolean sendTcpMessage(String channelId, byte[] message) {
-        return tcpManager.sendTcpMessage(channelId,message);
+        return tcpManager.sendTcpMessage(channelId, message);
     }
 
     public boolean sendUdpMessage(String channelId, DatagramPacket message) {
-        return udpManager.sendUdpMessage(channelId,message);
+        return udpManager.sendUdpMessage(channelId, message);
     }
 
     public void scheduleFixedRateTimer(FixedRateTimerParameters parameters) {

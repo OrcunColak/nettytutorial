@@ -1,6 +1,7 @@
 package com.colak.echoserver;
 
 import com.colak.nettymanager.NettyManager;
+import com.colak.nettymanager.NettyManagerParameters;
 import com.colak.nettymanager.TcpServerParameters;
 
 import java.util.Scanner;
@@ -12,7 +13,8 @@ public class EchoServer {
 
     public EchoServer(int port) {
         this.port = port;
-        this.nettyManager = new NettyManager();
+        NettyManagerParameters parameters = new NettyManagerParameters();
+        this.nettyManager = new NettyManager(parameters);
     }
 
     public void start() {

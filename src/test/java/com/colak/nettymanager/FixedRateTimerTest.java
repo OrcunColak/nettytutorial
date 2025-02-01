@@ -1,5 +1,6 @@
 package com.colak.nettymanager;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -9,13 +10,15 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Slf4j
 class FixedRateTimerTest {
 
     private static NettyManager nettyManager;
 
     @BeforeAll
     static void setup() {
-        nettyManager = new NettyManager();
+        NettyManagerParameters parameters = new NettyManagerParameters();
+        nettyManager = new NettyManager(parameters);
     }
 
     @AfterAll
@@ -28,7 +31,12 @@ class FixedRateTimerTest {
         CountDownLatch countDownLatch = new CountDownLatch(1);
 
         String timerId = "timer1";
-        FixedRateTimerParameters parameters = new FixedRateTimerParameters(timerId, countDownLatch::countDown, 0, 1000);
+        FixedRateTimerParameters parameters = new FixedRateTimerParameters(timerId, () -> {
+
+            // Run by netty-worker-3-1
+            log.info("Fixed rate timer expired");
+            countDownLatch.countDown();
+        }, 0, 1000);
         nettyManager.scheduleFixedRateTimer(parameters);
 
         boolean taskExecuted = countDownLatch.await(2, TimeUnit.SECONDS);
