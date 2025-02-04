@@ -34,6 +34,31 @@ public class LittleEndianDataInputStream {
         return byteBuffer.getLong();
     }
 
+    public byte[] readByteArray(int length) throws IOException {
+        ensureRemaining(length);
+
+        byte[] result = new byte[length];
+        byteBuffer.get(result);
+        return result;
+    }
+
+    public String readStringWithNullTerminator() throws IOException {
+        StringBuilder stringBuilder = new StringBuilder();
+        int byteRead = -1;
+
+        // Read until null byte or end of stream
+        while (byteBuffer.hasRemaining() && (byteRead = byteBuffer.get()) != 0) {
+            stringBuilder.append(byteRead);
+        }
+
+        // Check if we ended because of end of stream
+        if (byteRead == -1) {
+            throw new IOException("End of stream reached unexpectedly while reading string");
+
+        }
+        return stringBuilder.toString();
+    }
+
     private void ensureRemaining(int bytes) throws IOException {
         if (byteBuffer.remaining() < bytes) {
             throw new IOException("Insufficient bytes available to read");
