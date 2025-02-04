@@ -47,15 +47,23 @@ public class LittleEndianDataInputStream {
         int byteRead = -1;
 
         // Read until null byte or end of stream
-        while (byteBuffer.hasRemaining() && (byteRead = byteBuffer.get()) != 0) {
-            stringBuilder.append(byteRead);
+        while (byteBuffer.hasRemaining()) {
+            byteRead = byteBuffer.get();
+
+            // If we encounter the null terminator (0x00), stop reading
+            if (byteRead == 0) {
+                break;
+            }
+
+            // Append the character
+            stringBuilder.append((char) byteRead);
         }
 
-        // Check if we ended because of end of stream
-        if (byteRead == -1) {
+        // If we have not encountered the null terminator and the buffer is exhausted, throw an exception
+        if (byteRead != 0) {
             throw new IOException("End of stream reached unexpectedly while reading string");
-
         }
+
         return stringBuilder.toString();
     }
 
