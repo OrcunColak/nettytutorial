@@ -8,6 +8,13 @@ public class LittleEndianDataInputStream {
 
     private ByteBuffer byteBuffer;
 
+    public LittleEndianDataInputStream() {
+    }
+
+    public LittleEndianDataInputStream(byte[] data) {
+        setData(data);
+    }
+
     public void setData(byte[] data) {
         // Create a ByteBuffer from the byte array and set the byte order to little-endian
         this.byteBuffer = ByteBuffer.wrap(data)
@@ -42,7 +49,7 @@ public class LittleEndianDataInputStream {
         return result;
     }
 
-    public String readStringWithNullTerminator() throws IOException {
+    public String readNullTerminatedString() throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         int byteRead = -1;
 
