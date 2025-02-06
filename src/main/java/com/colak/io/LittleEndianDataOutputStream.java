@@ -8,6 +8,10 @@ public class LittleEndianDataOutputStream {
 
     private ByteBuffer byteBuffer;
 
+    public LittleEndianDataOutputStream() {
+        this(256);
+    }
+
     public LittleEndianDataOutputStream(int initialCapacity) {
         // Create a ByteBuffer  and set the byte order to little-endian
         this.byteBuffer = ByteBuffer.allocate(initialCapacity)
@@ -44,7 +48,7 @@ public class LittleEndianDataOutputStream {
         byteBuffer.putDouble(value);
     }
 
-    public void writeStringWithNullTerminator(String value) {
+    public void writeNullTerminatedString(String value) {
         byte[] bytes = value.getBytes(StandardCharsets.US_ASCII);
 
         // Ensure space for the string + null terminator
@@ -53,6 +57,27 @@ public class LittleEndianDataOutputStream {
 
         // Null terminator (0x00)
         byteBuffer.put((byte) 0);
+    }
+
+    public void writeNullTerminatedString(String str, int fixedLength) {
+        byte[] bytes = str.getBytes(StandardCharsets.US_ASCII); // Use ASCII since you're handling null termination
+        int lengthWithNullTerminator = bytes.length + 1;
+
+        if (lengthWithNullTerminator > fixedLength) {
+            throw new IllegalArgumentException("String is too long for the fixed length.");
+        }
+
+        // Write string bytes
+        byteBuffer.put(bytes);
+
+        // Write null terminator
+        writeByte((byte) 0);
+
+        // Write padding nulls if necessary
+        int paddingSize = fixedLength - lengthWithNullTerminator;
+        for (int i = 0; i < paddingSize; i++) {
+            writeByte((byte) 0);
+        }
     }
 
     public byte[] flushAndGetBuffer() {

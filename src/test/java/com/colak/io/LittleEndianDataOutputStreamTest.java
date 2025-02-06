@@ -69,9 +69,9 @@ class LittleEndianDataOutputStreamTest {
     }
 
     @Test
-    void testWriteStringWithNullTerminator() {
+    void testWriteNullTerminatedString() {
         LittleEndianDataOutputStream stream = new LittleEndianDataOutputStream(20);
-        stream.writeStringWithNullTerminator("Hello");
+        stream.writeNullTerminatedString("Hello");
 
         byte[] buffer = stream.flushAndGetBuffer();
         byte[] expected = "Hello\0".getBytes(StandardCharsets.US_ASCII);
