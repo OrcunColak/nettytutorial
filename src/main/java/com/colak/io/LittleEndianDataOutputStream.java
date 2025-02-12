@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 
+// A similar class exists in Guava
 public class LittleEndianDataOutputStream {
 
     private ByteBuffer byteBuffer;
@@ -49,6 +50,9 @@ public class LittleEndianDataOutputStream {
     }
 
     public void writeNullTerminatedString(String value) {
+        if (value == null) {
+            return;
+        }
         byte[] bytes = value.getBytes(StandardCharsets.US_ASCII);
 
         // Ensure space for the string + null terminator
@@ -59,8 +63,11 @@ public class LittleEndianDataOutputStream {
         byteBuffer.put((byte) 0);
     }
 
-    public void writeNullTerminatedString(String str, int fixedLength) {
-        byte[] bytes = str.getBytes(StandardCharsets.US_ASCII); // Use ASCII since you're handling null termination
+    public void writeNullTerminatedString(String value, int fixedLength) {
+        if (value == null) {
+            return;
+        }
+        byte[] bytes = value.getBytes(StandardCharsets.US_ASCII);
         int lengthWithNullTerminator = bytes.length + 1;
 
         if (lengthWithNullTerminator > fixedLength) {
