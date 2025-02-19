@@ -20,6 +20,15 @@ public class LittleEndianDataInputStreamTest {
     }
 
     @Test
+    public void testReadUnsignedByte() throws IOException {
+        byte[] data = new byte[]{(byte) 0xFF};
+        LittleEndianDataInputStream inputStream = new LittleEndianDataInputStream(data);
+
+        short result = inputStream.readUnsignedByte();
+        assertEquals(0xFF, result);
+    }
+
+    @Test
     public void testReadShort() throws IOException {
         byte[] data = new byte[]{0x01, 0x02};  // Little-endian representation of 0x0201
         LittleEndianDataInputStream inputStream = new LittleEndianDataInputStream(data);

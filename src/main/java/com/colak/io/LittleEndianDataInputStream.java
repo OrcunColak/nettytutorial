@@ -27,6 +27,11 @@ public class LittleEndianDataInputStream {
         return byteBuffer.get();
     }
 
+    public short readUnsignedByte() throws IOException {
+        ensureRemaining(1);
+        return (short) (byteBuffer.get() & 0xFF);
+    }
+
     public short readShort() throws IOException {
         ensureRemaining(2);
         return byteBuffer.getShort();
