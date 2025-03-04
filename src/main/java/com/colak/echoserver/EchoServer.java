@@ -3,30 +3,16 @@ package com.colak.echoserver;
 import com.colak.nettymanager.NettyManager;
 import com.colak.nettymanager.NettyManagerParameters;
 import com.colak.nettymanager.TcpServerParameters;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class EchoServer {
 
     private final int port;
     private final NettyManager nettyManager;
-
-    public EchoServer(int port) {
-        this.port = port;
-        NettyManagerParameters parameters = new NettyManagerParameters();
-        this.nettyManager = new NettyManager(parameters);
-    }
-
-    public void start() {
-        TcpServerParameters parameters = new TcpServerParameters("echoServerChannel",
-                port,
-                EchoServerHandler::new);
-        nettyManager.addTcpServer(parameters);
-    }
-
-    public void shutdown() {
-        nettyManager.shutdown();
-    }
 
     public static void main(String[] args) {
         int port = 8080; // Default port
@@ -45,4 +31,27 @@ public class EchoServer {
 
         echoServer.shutdown();
     }
+
+    public EchoServer(int port) {
+        this.port = port;
+        NettyManagerParameters parameters = new NettyManagerParameters();
+        this.nettyManager = new NettyManager(parameters);
+    }
+
+    public void start() {
+        TcpServerParameters parameters = new TcpServerParameters("echoServerChannel",
+                port,
+                EchoServerHandler2::new,
+                // Add two ChannelHandlerAdapters
+                // StringDecoder for reading ByteBuf as string
+                // StringEncoder for echoing back String as ByteBuf
+                List.of(new StringDecoder(), new StringEncoder()));
+        nettyManager.addTcpServer(parameters);
+    }
+
+    public void shutdown() {
+        nettyManager.shutdown();
+    }
+
+
 }

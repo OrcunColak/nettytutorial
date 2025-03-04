@@ -7,7 +7,9 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -49,6 +51,7 @@ public class TcpManager {
                         protected void initChannel(Channel channel) {
                             String clientId = UUID.randomUUID().toString(); // Generate a unique ID for each client
                             channel.pipeline()
+                                    .addLast(parameters.handlerList().toArray(new ChannelHandlerAdapter[0]))
                                     // Add the exception handler
                                     .addLast(new ExceptionHandler(clientId))
                                     // User-provided handler
@@ -85,6 +88,9 @@ public class TcpManager {
                                     .addLast(parameters.inboundHandler());
                         }
                     });
+                    // We can pass more parameters if necessary
+                    // .option(ChannelOption.SO_BACKLOG, backlog)
+                    // .childOption(ChannelOption.SO_KEEPALIVE, false);
 
             Channel channel = bootstrap.connect(new InetSocketAddress(parameters.host(), parameters.port()))
                     .sync()
