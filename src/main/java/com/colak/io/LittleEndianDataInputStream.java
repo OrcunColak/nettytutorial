@@ -47,6 +47,16 @@ public class LittleEndianDataInputStream {
         return byteBuffer.getLong();
     }
 
+    public float readFloat() throws IOException {
+        ensureRemaining(4);
+        return byteBuffer.getFloat();
+    }
+
+    public double readDouble() throws IOException {
+        ensureRemaining(8);
+        return byteBuffer.getDouble();
+    }
+
     public byte[] readByteArray(int length) throws IOException {
         ensureRemaining(length);
 
