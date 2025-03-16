@@ -29,8 +29,8 @@ class LittleEndianDataOutputStreamStringTest {
         stream.writeNullTerminatedString("Test", 10);
         byte[] result = stream.flushAndGetBuffer();
 
-        // Expected output: "Test" (ASCII: 84, 101, 115, 116) + null (0) + padding (5 nulls)
-        byte[] expected = {84, 101, 115, 116, 0, 0, 0, 0, 0, 0};
+        // Expected output: "Test" (ASCII: 84, 101, 115, 116) + null (0) + padding (6 nulls)
+        byte[] expected = {84, 101, 115, 116, 0, 0, 0, 0, 0, 0, 0};
 
         assertArrayEquals(expected, result);
     }
@@ -51,8 +51,8 @@ class LittleEndianDataOutputStreamStringTest {
         stream.writeNullTerminatedString("Hello", 6);
         byte[] result = stream.flushAndGetBuffer();
 
-        // Expected output: "Hello" + null terminator, exactly 6 bytes
-        byte[] expected = {72, 101, 108, 108, 111, 0}; // "Hello\0"
+        // Expected output: "Hello" + null terminator, exactly 7 bytes
+        byte[] expected = {72, 101, 108, 108, 111, 0, 0}; // "Hello\0"
 
         assertArrayEquals(expected, result);
     }
@@ -64,8 +64,8 @@ class LittleEndianDataOutputStreamStringTest {
         stream.writeNullTerminatedString("", 5);
         byte[] result = stream.flushAndGetBuffer();
 
-        // Expected output: null terminator + 4 null padding
-        byte[] expected = {0, 0, 0, 0, 0};
+        // Expected output: null terminator + 5 null padding
+        byte[] expected = {0, 0, 0, 0, 0, 0};
 
         assertArrayEquals(expected, result);
     }

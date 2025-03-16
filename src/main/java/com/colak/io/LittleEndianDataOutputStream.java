@@ -79,23 +79,21 @@ public class LittleEndianDataOutputStream {
             return;
         }
         byte[] bytes = value.getBytes(StandardCharsets.US_ASCII);
-        int lengthWithNullTerminator = bytes.length + 1;
 
-        if (lengthWithNullTerminator > fixedLength) {
+        if (bytes.length > fixedLength) {
             throw new IllegalArgumentException("String is too long for the fixed length.");
         }
 
         // Write string bytes
         byteBuffer.put(bytes);
 
-        // Write null terminator
-        writeByte((byte) 0);
-
-        // Write padding nulls if necessary
-        int paddingSize = fixedLength - lengthWithNullTerminator;
-        for (int i = 0; i < paddingSize; i++) {
-            writeByte((byte) 0);
+        // Pad with null characters (0x00) to reach exactly fixedLength bytes
+        for (int i = bytes.length; i < fixedLength; i++) {
+            byteBuffer.put((byte) 0);
         }
+
+        // Write the final null terminator (0x00)
+        byteBuffer.put((byte) 0);
     }
 
     public byte[] flushAndGetBuffer() {

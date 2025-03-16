@@ -21,6 +21,16 @@ class LittleEndianDataOutputStreamTest {
     }
 
     @Test
+    void testWriteUnsignedByte() {
+        LittleEndianDataOutputStream stream = new LittleEndianDataOutputStream(10);
+
+        stream.writeUnsignedByte((short) 255);
+
+        byte[] buffer = stream.flushAndGetBuffer();
+        assertArrayEquals(new byte[]{(byte) 0xFF}, buffer);
+    }
+
+    @Test
     void testWriteShort() {
         LittleEndianDataOutputStream stream = new LittleEndianDataOutputStream(10);
         stream.writeShort((short) 0x1234);

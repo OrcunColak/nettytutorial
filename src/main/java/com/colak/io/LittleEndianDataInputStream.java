@@ -90,6 +90,25 @@ public class LittleEndianDataInputStream {
         return stringBuilder.toString();
     }
 
+    public String readNullTerminatedString(int fixedLength) throws IOException {
+        int startPos = byteBuffer.position();
+
+        // Read the null-terminated string using the existing method
+        String result = readNullTerminatedString();
+
+        // Calculate how many bytes were actually read (including null terminator)
+        int bytesRead = byteBuffer.position() - startPos;
+
+        // Move the position forward to ensure we consume exactly fixedLength + 1 bytes
+        int remaining = (fixedLength + 1) - bytesRead;
+        if (remaining > 0) {
+            byteBuffer.position(byteBuffer.position() + remaining);
+        }
+
+        return result;
+    }
+
+
     private void ensureRemaining(int bytes) throws IOException {
         if (byteBuffer.remaining() < bytes) {
             throw new IOException("Insufficient bytes available to read");
