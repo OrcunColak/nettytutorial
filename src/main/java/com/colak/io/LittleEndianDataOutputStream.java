@@ -24,6 +24,11 @@ public class LittleEndianDataOutputStream {
         byteBuffer.put(value);
     }
 
+    public void writeByteArray(byte[] value) {
+        ensureCapacity(value.length);
+        byteBuffer.put(value);
+    }
+
     public void writeUnsignedByte(short value) {
         ensureCapacity(1);
         byte unsignedByte = (byte) (value & 0XFF);
