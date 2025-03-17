@@ -74,26 +74,51 @@ public class LittleEndianDataOutputStream {
         byteBuffer.put((byte) 0);
     }
 
-    public void writeNullTerminatedString(String value, int fixedLength) {
+    // Write exactly the given length
+    public void writeFixedLengthNullTerminatedString(String value, int fixedLength) {
+        if (value == null) {
+            return;
+        }
+        byte[] bytes = value.getBytes(StandardCharsets.US_ASCII);
+        int lengthWithNullTerminator = bytes.length + 1;
+
+        if (lengthWithNullTerminator > fixedLength) {
+            throw new IllegalArgumentException("String is too long for the fixed length.");
+        }
+
+        ensureCapacity(fixedLength);
+
+        // Write string bytes
+        writeByteArray(bytes);
+
+        // Write padding bytes
+        int paddingSize = fixedLength - bytes.length;
+        for (int i = 0; i < paddingSize; i++) {
+            writeByte((byte) 0);
+        }
+    }
+
+    // Write the given length + 1
+    public void writeVarCharNullTerminatedString(String value, int varCharLength) {
         if (value == null) {
             return;
         }
         byte[] bytes = value.getBytes(StandardCharsets.US_ASCII);
 
-        if (bytes.length > fixedLength) {
-            throw new IllegalArgumentException("String is too long for the fixed length.");
+        if (bytes.length > varCharLength) {
+            throw new IllegalArgumentException("String is too long for the varchar length.");
         }
+        int lengthWithNullTerminator = varCharLength + 1;
+        ensureCapacity(lengthWithNullTerminator);
 
         // Write string bytes
-        byteBuffer.put(bytes);
+        writeByteArray(bytes);
 
-        // Pad with null characters (0x00) to reach exactly fixedLength bytes
-        for (int i = bytes.length; i < fixedLength; i++) {
-            byteBuffer.put((byte) 0);
+        // Write padding bytes
+        int paddingSize = lengthWithNullTerminator - bytes.length;
+        for (int i = 0; i < paddingSize; i++) {
+            writeByte((byte) 0);
         }
-
-        // Write the final null terminator (0x00)
-        byteBuffer.put((byte) 0);
     }
 
     public byte[] flushAndGetBuffer() {
