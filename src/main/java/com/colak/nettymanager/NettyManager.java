@@ -20,6 +20,10 @@ public class NettyManager {
     private final UdpManager udpManager;
 
 
+    public NettyManager(int bossThread, int workerThreads) {
+        this(new NettyManagerParameters(bossThread, workerThreads));
+    }
+
     public NettyManager(NettyManagerParameters parameters) {
         if (parameters.executor() != null) {
             bossGroup = new MultiThreadIoEventLoopGroup(parameters.bossThread(), NioIoHandler.newFactory());
