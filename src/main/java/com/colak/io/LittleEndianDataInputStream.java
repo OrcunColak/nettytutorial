@@ -16,6 +16,14 @@ public class LittleEndianDataInputStream {
         setData(data);
     }
 
+    public int getRemainingBytesCount() {
+        return byteBuffer.remaining();
+    }
+
+    public void setPosition(int newPosition) {
+        byteBuffer.position(newPosition);
+    }
+
     public void setData(byte[] data) {
         // Create a ByteBuffer from the byte array and set the byte order to little-endian
         this.byteBuffer = ByteBuffer.wrap(data)
