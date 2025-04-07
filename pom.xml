@@ -13,9 +13,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <lombok.version>1.18.36</lombok.version>
-        <netty.version>4.2.0.RC2</netty.version>
-        <slf4j.version>2.1.0-alpha1</slf4j.version>
-        <junit.version>5.11.4</junit.version>
+        <netty.version>4.2.0.Final</netty.version>
+        <slf4j.version>2.0.17</slf4j.version>
+        <junit.version>5.13.0-M2</junit.version>
     </properties>
 
     <build>
