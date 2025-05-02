@@ -66,6 +66,10 @@ public class NettyManager {
         return udpManager.sendUdpMessage(channelId, message);
     }
 
+    public boolean sendUdpMessageSync(String channelId, DatagramPacket message) {
+        return udpManager.sendUdpMessageSync(channelId, message);
+    }
+
     public void scheduleFixedRateTimer(FixedRateTimerParameters parameters) {
         timerManager.scheduleFixedRateTimer(parameters);
     }

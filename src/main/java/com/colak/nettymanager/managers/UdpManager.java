@@ -4,6 +4,7 @@ import com.colak.nettymanager.UdpClientParameters;
 import com.colak.nettymanager.UdpServerParameters;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.DatagramPacket;
@@ -82,6 +83,20 @@ public class UdpManager {
             udpChannel.writeAndFlush(message);
         }
         return channelExists;
+    }
+
+    public boolean sendUdpMessageSync(String channelId, DatagramPacket message) {
+        boolean result = false;
+        Channel channel = channels.get(channelId);
+        if (channel instanceof NioDatagramChannel udpChannel) {
+            try {
+                ChannelFuture channelFuture = udpChannel.writeAndFlush(message).sync();
+                result = channelFuture.isSuccess();
+            } catch (InterruptedException exception) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        return result;
     }
 
     public boolean shutdownChannel(String channelId) {
