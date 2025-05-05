@@ -2,12 +2,24 @@ package com.colak.nettymanager;
 
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-public record UdpClientParameters(String channelId, SimpleChannelInboundHandler<DatagramPacket> inboundHandler,
-                                  boolean broadcast) {
+@Getter
+@Setter
+@Accessors(chain = true)
+public class UdpClientParameters {
 
-    public UdpClientParameters(String channelId, SimpleChannelInboundHandler<DatagramPacket> inboundHandler) {
-        this(channelId, inboundHandler, false);
+    private final String channelId;
 
+    // inboundHandler is optional for a UDP client that do not read any data
+    private SimpleChannelInboundHandler<DatagramPacket> inboundHandler;
+
+    // broadcast is optional
+    private boolean broadcast;
+
+    public UdpClientParameters(String channelId) {
+        this.channelId = channelId;
     }
 }

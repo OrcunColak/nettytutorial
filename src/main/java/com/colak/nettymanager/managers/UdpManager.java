@@ -3,10 +3,7 @@ package com.colak.nettymanager.managers;
 import com.colak.nettymanager.UdpClientParameters;
 import com.colak.nettymanager.UdpServerParameters;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import org.slf4j.Logger;
@@ -53,10 +50,19 @@ public class UdpManager {
         try {
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(workerGroup)
-                    .channel(NioDatagramChannel.class)
-                    .handler(parameters.inboundHandler());
+                    .channel(NioDatagramChannel.class);
 
-            if (parameters.broadcast()) {
+            // Only add the inbound handler if one is provided in parameters
+            if (parameters.getInboundHandler() != null) {
+                bootstrap.handler(parameters.getInboundHandler());
+            } else {
+                // No handler, just don't add any handler
+                bootstrap.handler(new ChannelInboundHandlerAdapter() {
+                    // Empty handler to prevent input handling
+                });
+            }
+
+            if (parameters.isBroadcast()) {
                 bootstrap.option(ChannelOption.SO_BROADCAST, true);
             }
             Channel channel = bootstrap
@@ -65,9 +71,9 @@ public class UdpManager {
                     .sync()
                     .channel();
 
-            channels.put(parameters.channelId(), channel);
+            channels.put(parameters.getChannelId(), channel);
             result = true;
-            logger.info("UDP Client with ID {} started", parameters.channelId());
+            logger.info("UDP Client with ID {} started", parameters.getChannelId());
         } catch (InterruptedException exception) {
             // Restore interrupt status
             Thread.currentThread().interrupt();
@@ -75,6 +81,7 @@ public class UdpManager {
         return result;
     }
 
+    // Send UDP message using an existing channel, target specified in the DatagramPacket
     public boolean sendUdpMessage(String channelId, DatagramPacket message) {
         boolean channelExists = false;
         Channel channel = channels.get(channelId);
@@ -85,6 +92,7 @@ public class UdpManager {
         return channelExists;
     }
 
+    // Send UDP message using an existing channel, target specified in the DatagramPacket
     public boolean sendUdpMessageSync(String channelId, DatagramPacket message) {
         boolean result = false;
         Channel channel = channels.get(channelId);
@@ -122,6 +130,4 @@ public class UdpManager {
         channels.clear();
 
     }
-
-
 }
