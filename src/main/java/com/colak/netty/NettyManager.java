@@ -20,6 +20,10 @@ public class NettyManager {
     private final UdpManager udpManager;
 
 
+    public NettyManager() {
+        this(1, 4);
+    }
+
     public NettyManager(int bossThread, int workerThreads) {
         this(new NettyManagerParameters(bossThread, workerThreads));
     }
