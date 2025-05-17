@@ -1,7 +1,7 @@
-package com.colak.nettymanager.managers;
+package com.colak.netty.managers;
 
-import com.colak.nettymanager.TcpClientParameters;
-import com.colak.nettymanager.TcpServerParameters;
+import com.colak.netty.TcpClientParameters;
+import com.colak.netty.TcpServerParameters;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
@@ -9,7 +9,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;

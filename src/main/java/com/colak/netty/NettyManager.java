@@ -1,8 +1,8 @@
-package com.colak.nettymanager;
+package com.colak.netty;
 
-import com.colak.nettymanager.managers.TcpManager;
-import com.colak.nettymanager.managers.TimerManager;
-import com.colak.nettymanager.managers.UdpManager;
+import com.colak.netty.managers.TcpManager;
+import com.colak.netty.managers.TimerManager;
+import com.colak.netty.managers.UdpManager;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.nio.NioIoHandler;

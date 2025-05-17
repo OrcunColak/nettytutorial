@@ -1,4 +1,4 @@
-package com.colak.nettymanager;
+package com.colak.netty;
 
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelInboundHandler;

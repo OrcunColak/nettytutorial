@@ -1,7 +1,7 @@
-package com.colak.nettymanager.managers;
+package com.colak.netty.managers;
 
-import com.colak.nettymanager.FixedRateTimerParameters;
-import com.colak.nettymanager.SingleShotTimerParameters;
+import com.colak.netty.FixedRateTimerParameters;
+import com.colak.netty.SingleShotTimerParameters;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.ScheduledFuture;
 import org.slf4j.Logger;

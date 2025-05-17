@@ -1,8 +1,8 @@
 package com.colak.echoserver;
 
-import com.colak.nettymanager.NettyManager;
-import com.colak.nettymanager.NettyManagerParameters;
-import com.colak.nettymanager.TcpServerParameters;
+import com.colak.netty.NettyManager;
+import com.colak.netty.NettyManagerParameters;
+import com.colak.netty.TcpServerParameters;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 
