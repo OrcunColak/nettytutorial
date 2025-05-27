@@ -1,4 +1,4 @@
-package com.colak.netty;
+package com.colak.netty.tcpparams;
 
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelInboundHandler;

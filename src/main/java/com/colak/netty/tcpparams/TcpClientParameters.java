@@ -1,4 +1,4 @@
-package com.colak.netty;
+package com.colak.netty.tcpparams;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.SimpleChannelInboundHandler;

@@ -1,7 +1,7 @@
 package com.colak.netty.managers;
 
-import com.colak.netty.TcpClientParameters;
-import com.colak.netty.TcpServerParameters;
+import com.colak.netty.tcpparams.TcpClientParameters;
+import com.colak.netty.tcpparams.TcpServerParameters;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;

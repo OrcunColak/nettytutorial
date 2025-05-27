@@ -1,4 +1,4 @@
-package com.colak.netty;
+package com.colak.netty.timerparams;
 
 import java.util.concurrent.TimeUnit;
 

@@ -2,7 +2,7 @@ package com.colak.echoserver;
 
 import com.colak.netty.NettyManager;
 import com.colak.netty.NettyManagerParameters;
-import com.colak.netty.TcpServerParameters;
+import com.colak.netty.tcpparams.TcpServerParameters;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 

@@ -1,4 +1,4 @@
-package com.colak.netty;
+package com.colak.netty.udpparams;
 
 
 import io.netty.channel.SimpleChannelInboundHandler;
