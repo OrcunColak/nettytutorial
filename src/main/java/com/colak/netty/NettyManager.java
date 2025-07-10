@@ -14,6 +14,7 @@ import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import io.netty.util.concurrent.Future;
 
 public class NettyManager {
 
@@ -109,8 +110,11 @@ public class NettyManager {
         udpManager.shutdown();
         tcpManager.shutdown();
 
-        bossGroup.shutdownGracefully();
-        workerGroup.shutdownGracefully();
+        Future<?> bossFuture = bossGroup.shutdownGracefully();
+        Future<?> workerGroupFuture = workerGroup.shutdownGracefully();
+
+        bossFuture.syncUninterruptibly();
+        workerGroupFuture.syncUninterruptibly();
     }
 
 }

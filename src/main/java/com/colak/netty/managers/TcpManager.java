@@ -87,9 +87,9 @@ public class TcpManager {
                                     .addLast(parameters.inboundHandler());
                         }
                     });
-                    // We can pass more parameters if necessary
-                    // .option(ChannelOption.SO_BACKLOG, backlog)
-                    // .childOption(ChannelOption.SO_KEEPALIVE, false);
+            // We can pass more parameters if necessary
+            // .option(ChannelOption.SO_BACKLOG, backlog)
+            // .childOption(ChannelOption.SO_KEEPALIVE, false);
 
             Channel channel = bootstrap.connect(new InetSocketAddress(parameters.host(), parameters.port()))
                     .sync()
@@ -171,9 +171,13 @@ public class TcpManager {
     }
 
     public void shutdown() {
-        // Close all channels
-        channels.values().forEach(Channel::close);
+        channels.values().forEach(channel -> {
+            channel.close().addListener(future -> {
+                if (!future.isSuccess()) {
+                    logger.error("Failed to close TCP channel", future.cause());
+                }
+            });
+        });
         channels.clear();
     }
-
 }
