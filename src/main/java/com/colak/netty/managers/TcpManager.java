@@ -171,13 +171,11 @@ public class TcpManager {
     }
 
     public void shutdown() {
-        channels.values().forEach(channel -> {
-            channel.close().addListener(future -> {
-                if (!future.isSuccess()) {
-                    logger.error("Failed to close TCP channel", future.cause());
-                }
-            });
-        });
+        channels.values().forEach(channel -> channel.close().addListener(future -> {
+            if (!future.isSuccess()) {
+                logger.error("Failed to close TCP channel", future.cause());
+            }
+        }));
         channels.clear();
     }
 }
