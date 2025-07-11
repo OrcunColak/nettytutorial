@@ -87,7 +87,12 @@ public class UdpManager {
         Channel channel = channels.get(channelId);
         if (channel instanceof NioDatagramChannel udpChannel) {
             channelExists = true;
-            udpChannel.writeAndFlush(message);
+            udpChannel.writeAndFlush(message)
+                    .addListener(future -> {
+                        if (!future.isSuccess()) {
+                            logger.error("Failed to writeAndFlush to UDP channel: {}", channelId, future.cause());
+                        }
+                    });
         }
         return channelExists;
     }
@@ -126,11 +131,12 @@ public class UdpManager {
     // Shuts down the server gracefully.
     // When this method is called, new channels should not be added
     public void shutdown() {
-        channels.values().forEach(channel -> channel.close().addListener(future -> {
-            if (!future.isSuccess()) {
-                logger.error("Failed to close UDP channel", future.cause());
-            }
-        }));
+        channels.values().forEach(channel -> channel.close()
+                .addListener(future -> {
+                    if (!future.isSuccess()) {
+                        logger.error("Failed to close UDP channel", future.cause());
+                    }
+                }));
         channels.clear();
     }
 }

@@ -75,7 +75,7 @@ public class TcpManager {
     }
 
     public boolean addTcpClient(TcpClientParameters parameters) {
-        boolean resut = false;
+        boolean result = false;
         try {
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(workerGroup)
@@ -95,13 +95,13 @@ public class TcpManager {
                     .sync()
                     .channel();
             channels.put(parameters.channelId(), channel);
-            resut = true;
+            result = true;
             logger.info("TCP Client with ID {} started", parameters.channelId());
         } catch (InterruptedException exception) {
             // Restore interrupt status
             Thread.currentThread().interrupt();
         }
-        return resut;
+        return result;
     }
 
     // Exception handler class
@@ -148,8 +148,14 @@ public class TcpManager {
         Channel channel = channels.get(channelId);
         if (channel instanceof NioServerSocketChannel || channel instanceof NioSocketChannel) {
             channelExists = true;
+            // Create Netty ByteBuf for transmission
             ByteBuf byteBuf = Unpooled.wrappedBuffer(message);
-            channel.writeAndFlush(byteBuf);
+            channel.writeAndFlush(byteBuf)
+                    .addListener(future -> {
+                        if (!future.isSuccess()) {
+                            logger.error("Failed to writeAndFlush to UDP channel: {}", channelId, future.cause());
+                        }
+                    });
         }
         return channelExists;
     }

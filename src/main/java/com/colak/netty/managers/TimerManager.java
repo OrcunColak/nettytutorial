@@ -37,7 +37,12 @@ public class TimerManager {
     }
 
     public void scheduleSingleShotTimer(SingleShotTimerParameters parameters) {
-        workerGroup.schedule(parameters.runnable(), parameters.delay(), parameters.timeUnit());
+        workerGroup.schedule(parameters.runnable(), parameters.delay(), parameters.timeUnit())
+                .addListener(future -> {
+                    if (!future.isSuccess()) {
+                        logger.error("Failed to scheduleSingleShotTimer", future.cause());
+                    }
+                });
     }
 
     public void stopTimer(String timerId) {
