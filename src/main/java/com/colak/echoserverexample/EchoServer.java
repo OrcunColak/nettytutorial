@@ -1,4 +1,4 @@
-package com.colak.echoserver;
+package com.colak.echoserverexample;
 
 import com.colak.netty.NettyManager;
 import com.colak.netty.NettyManagerParameters;

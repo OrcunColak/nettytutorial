@@ -1,4 +1,4 @@
-package com.colak.channelgroup;
+package com.colak.channelgroupexamples;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -15,7 +15,7 @@ public class TelnetClient {
     private final String host;
     private final int port;
 
-    public static void main(String[] args) throws InterruptedException {
+    static void main() throws InterruptedException {
         new TelnetClient("127.0.0.1", 8080).run();
     }
 

@@ -1,4 +1,4 @@
-package com.colak.echoserver;
+package com.colak.echoserverexample;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;

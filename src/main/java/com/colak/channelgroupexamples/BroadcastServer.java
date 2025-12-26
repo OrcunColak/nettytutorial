@@ -1,4 +1,4 @@
-package com.colak.channelgroup;
+package com.colak.channelgroupexamples;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -15,7 +15,7 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 // If you want to broadcast a message to all connected clients, you need to manage a group of channels manually using a ChannelGroup.
 public class BroadcastServer {
 
-    public static void main(String[] args) throws InterruptedException {
+    static void main() throws InterruptedException {
         EventLoopGroup bossGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
         EventLoopGroup workerGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
 
