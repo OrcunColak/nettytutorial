@@ -32,12 +32,12 @@ public class UdpManager {
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(workerGroup)
                     .channel(NioDatagramChannel.class)
-                    .handler(parameters.inboundHandler());
+                    .handler(parameters.getInboundHandler());
 
-            Channel channel = bootstrap.bind(parameters.port()).sync().channel();
-            channels.put(parameters.channelId(), channel);
+            Channel channel = bootstrap.bind(parameters.getPort()).sync().channel();
+            channels.put(parameters.getChannelId(), channel);
             result = true;
-            logger.info("UDP Server with ID {} started", parameters.channelId());
+            logger.info("UDP Server with ID {} started", parameters.getChannelId());
         } catch (InterruptedException exception) {
             // Restore interrupt status
             Thread.currentThread().interrupt();
