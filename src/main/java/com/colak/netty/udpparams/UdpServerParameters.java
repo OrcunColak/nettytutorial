@@ -3,8 +3,6 @@ package com.colak.netty.udpparams;
 
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelOutboundHandler;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.socket.DatagramPacket;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -65,7 +63,7 @@ public final class UdpServerParameters {
         }
 
         /** Required final inbound handler */
-        public Builder inboundHandler(SimpleChannelInboundHandler<DatagramPacket> handler) {
+        public Builder inboundHandler(ChannelInboundHandler handler) {
             this.inboundHandler = handler;
             return this;
         }
