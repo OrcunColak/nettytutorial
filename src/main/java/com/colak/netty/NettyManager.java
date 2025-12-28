@@ -73,11 +73,11 @@ public class NettyManager {
         return tcpManager.sendTcpMessage(channelId, message);
     }
 
-    public boolean sendUdpMessage(String channelId, DatagramPacket message) {
+    public boolean sendUdpMessage(String channelId, Object message) {
         return udpManager.sendUdpMessage(channelId, message);
     }
 
-    public boolean sendUdpMessageSync(String channelId, DatagramPacket message) {
+    public boolean sendUdpMessageSync(String channelId, Object message) {
         return udpManager.sendUdpMessageSync(channelId, message);
     }
 

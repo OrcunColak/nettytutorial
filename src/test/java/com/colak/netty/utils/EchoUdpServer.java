@@ -35,10 +35,11 @@ public class EchoUdpServer {
         };
 
         // Create UDP server
-        UdpServerParameters parameters = new UdpServerParameters()
-                .setChannelId(channelId)
-                .setPort(port)
-                .setInboundHandler(echoHandler);
+        UdpServerParameters parameters = UdpServerParameters.builder()
+                .channelId(channelId)
+                .port(port)
+                .inboundHandler(echoHandler)
+                .build();
         boolean result = nettyManager.addUdpServer(parameters);
         assertTrue(result, "Echo server did not start successfully");
     }
