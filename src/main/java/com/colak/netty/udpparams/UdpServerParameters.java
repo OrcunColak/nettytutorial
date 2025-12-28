@@ -20,7 +20,7 @@ public final class UdpServerParameters {
     private final List<ChannelInboundHandler> inboundEncoders;
 
     /** Required terminal inbound handler */
-    private final SimpleChannelInboundHandler<DatagramPacket> inboundHandler;
+    private final ChannelInboundHandler inboundHandler;
 
     /** Optional outbound transformers (encoders) */
     private final List<ChannelOutboundHandler> outboundEncoders;
@@ -43,7 +43,7 @@ public final class UdpServerParameters {
         private Integer port;
 
         private final List<ChannelInboundHandler> inboundEncoders = new ArrayList<>();
-        private SimpleChannelInboundHandler<DatagramPacket> inboundHandler;
+        private ChannelInboundHandler inboundHandler;
         private final List<ChannelOutboundHandler> outboundEncoders = new ArrayList<>();
 
         private Builder() {}
