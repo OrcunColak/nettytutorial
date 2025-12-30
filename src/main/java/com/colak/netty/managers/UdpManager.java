@@ -44,7 +44,7 @@ public class UdpManager {
                             ChannelPipeline pipeline = ch.pipeline();
 
                             // inbound transformers (head → tail)
-                            for (ChannelInboundHandler handler : parameters.getInboundEncoders()) {
+                            for (ChannelInboundHandler handler : parameters.getInboundDecoders()) {
                                 pipeline.addLast(handler);
                             }
 

@@ -15,7 +15,7 @@ public final class UdpServerParameters {
     private final int port;
 
     /** Optional inbound transformers (decoders) */
-    private final List<ChannelInboundHandler> inboundEncoders;
+    private final List<ChannelInboundHandler> inboundDecoders;
 
     /** Required terminal inbound handler */
     private final ChannelInboundHandler inboundHandler;
@@ -26,7 +26,7 @@ public final class UdpServerParameters {
     private UdpServerParameters(Builder builder) {
         this.channelId = builder.channelId;
         this.port = builder.port;
-        this.inboundEncoders = List.copyOf(builder.inboundEncoders);
+        this.inboundDecoders = List.copyOf(builder.inboundDecoders);
         this.inboundHandler = builder.inboundHandler;
         this.outboundEncoders = List.copyOf(builder.outboundEncoders);
     }
@@ -40,7 +40,7 @@ public final class UdpServerParameters {
         private String channelId;
         private Integer port;
 
-        private final List<ChannelInboundHandler> inboundEncoders = new ArrayList<>();
+        private final List<ChannelInboundHandler> inboundDecoders = new ArrayList<>();
         private ChannelInboundHandler inboundHandler;
         private final List<ChannelOutboundHandler> outboundEncoders = new ArrayList<>();
 
@@ -57,8 +57,8 @@ public final class UdpServerParameters {
         }
 
         /** Optional inbound transformers (decoders) */
-        public Builder addInboundEncoder(ChannelInboundHandler handler) {
-            this.inboundEncoders.add(handler);
+        public Builder addInboundDecoder(ChannelInboundHandler handler) {
+            this.inboundDecoders.add(handler);
             return this;
         }
 
