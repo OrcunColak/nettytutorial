@@ -12,8 +12,6 @@ import com.colak.netty.udpparams.UdpServerParameters;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.nio.NioIoHandler;
-import io.netty.channel.socket.DatagramPacket;
-import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.Future;
 
 public class NettyManager {
@@ -25,39 +23,48 @@ public class NettyManager {
     private final TimerManager timerManager;
     private final TcpManager tcpManager;
     private final UdpManager udpManager;
+    private final boolean hasTcpSupport;
 
+    private NettyManager(int bossThread, int workerThreads) {
+        this.bossGroup = createEventLoopGroup(bossThread);
+        this.hasTcpSupport = this.bossGroup != null;
 
-    public NettyManager() {
-        this(1, 4);
+        this.workerGroup = createEventLoopGroup(workerThreads);
+
+        this.timerManager = new TimerManager(workerGroup);
+        this.tcpManager = new TcpManager(bossGroup, workerGroup);
+        this.udpManager = new UdpManager(workerGroup);
     }
 
-    public NettyManager(int bossThread, int workerThreads) {
-        this(new NettyManagerParameters(bossThread, workerThreads));
+    public static NettyManager newSingleThreadWorker() {
+        return new NettyManager(-1, 1);
     }
 
-    public NettyManager(NettyManagerParameters parameters) {
-        if (parameters.executor() != null) {
-            bossGroup = new MultiThreadIoEventLoopGroup(parameters.bossThread(), NioIoHandler.newFactory());
-            workerGroup = new MultiThreadIoEventLoopGroup(parameters.workerThreads(), parameters.executor(), NioIoHandler.newFactory());
-        } else {
-            DefaultThreadFactory bossThreadFactory = new DefaultThreadFactory("netty-boss");
-            bossGroup = new MultiThreadIoEventLoopGroup(parameters.bossThread(), bossThreadFactory, NioIoHandler.newFactory());
+    public static NettyManager newWorker(int workerThreads) {
+        return new NettyManager(-1, workerThreads);
+    }
 
-            // Create a custom thread factory with a specific name prefix
-            DefaultThreadFactory workerThreadFactory = new DefaultThreadFactory("netty-worker");
-            workerGroup = new MultiThreadIoEventLoopGroup(parameters.workerThreads(), workerThreadFactory, NioIoHandler.newFactory());
+    public static NettyManager newBossAndWorker(int bossThreads, int workerThreads) {
+        if (bossThreads <= 0) {
+            throw new IllegalArgumentException("bossThreads must be positive for TCP support");
         }
+        return new NettyManager(bossThreads, workerThreads);
+    }
 
-        timerManager = new TimerManager(workerGroup);
-        tcpManager = new TcpManager(bossGroup, workerGroup);
-        udpManager = new UdpManager(workerGroup);
+    private EventLoopGroup createEventLoopGroup(int threads) {
+        if (threads < 0) {
+            return null;
+        }
+        return new MultiThreadIoEventLoopGroup(threads, NioIoHandler.newFactory());
     }
 
     public boolean addTcpServer(TcpServerParameters parameters) {
+        validateTcpSupport();
         return tcpManager.addTcpServer(parameters);
     }
 
     public boolean addTcpClient(TcpClientParameters parameters) {
+        validateTcpSupport();
         return tcpManager.addTcpClient(parameters);
     }
 
@@ -70,6 +77,7 @@ public class NettyManager {
     }
 
     public boolean sendTcpMessage(String channelId, byte[] message) {
+        validateTcpSupport();
         return tcpManager.sendTcpMessage(channelId, message);
     }
 
@@ -102,7 +110,14 @@ public class NettyManager {
     }
 
     public boolean shutdownTcpChannel(String channelId) {
+        validateTcpSupport();
         return tcpManager.shutdownChannel(channelId);
+    }
+
+    private void validateTcpSupport() {
+        if (!hasTcpSupport) {
+            throw new IllegalStateException("TCP functionality not available.: bossThreads was negative");
+        }
     }
 
     public void shutdown() {
@@ -110,10 +125,11 @@ public class NettyManager {
         udpManager.shutdown();
         tcpManager.shutdown();
 
-        Future<?> bossFuture = bossGroup.shutdownGracefully();
+        if (hasTcpSupport) {
+            Future<?> bossFuture = bossGroup.shutdownGracefully();
+            bossFuture.syncUninterruptibly();
+        }
         Future<?> workerGroupFuture = workerGroup.shutdownGracefully();
-
-        bossFuture.syncUninterruptibly();
         workerGroupFuture.syncUninterruptibly();
     }
 

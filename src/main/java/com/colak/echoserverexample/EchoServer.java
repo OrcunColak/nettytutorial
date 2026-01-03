@@ -1,7 +1,6 @@
 package com.colak.echoserverexample;
 
 import com.colak.netty.NettyManager;
-import com.colak.netty.NettyManagerParameters;
 import com.colak.netty.tcpparams.TcpServerParameters;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
@@ -34,8 +33,7 @@ public class EchoServer {
 
     public EchoServer(int port) {
         this.port = port;
-        NettyManagerParameters parameters = new NettyManagerParameters();
-        this.nettyManager = new NettyManager(parameters);
+        this.nettyManager = NettyManager.newSingleThreadWorker();
     }
 
     public void start() {
