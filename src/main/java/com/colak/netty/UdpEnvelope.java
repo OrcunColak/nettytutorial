@@ -14,4 +14,12 @@ public class UdpEnvelope<T> {
     public UdpEnvelope(T payload, String ip, int port) {
         this(payload, new InetSocketAddress(ip, port));
     }
+
+    @Override
+    public String toString() {
+        return "UdpEnvelope{" +
+               "payload=" + payload.toString() +
+               ", socketAddress=" + socketAddress +
+               "}";
+    }
 }
