@@ -15,9 +15,7 @@ import io.netty.channel.nio.NioIoHandler;
 import io.netty.util.concurrent.Future;
 
 public class NettyManager {
-
     private final EventLoopGroup bossGroup;
-
     private final EventLoopGroup workerGroup;
 
     private final TimerManager timerManager;
@@ -132,5 +130,4 @@ public class NettyManager {
         Future<?> workerGroupFuture = workerGroup.shutdownGracefully();
         workerGroupFuture.syncUninterruptibly();
     }
-
 }
