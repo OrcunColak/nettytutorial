@@ -34,9 +34,7 @@ public abstract class AbstractRpcResponseInboundHandler<RES, KEY>
     /**
      * Whether this response represents a remote error
      */
-    protected boolean isErrorResponse(RES response) {
-        return false;
-    }
+    protected abstract boolean isErrorResponse(RES response);
 
     /**
      * Convert error response into RpcPeerException
