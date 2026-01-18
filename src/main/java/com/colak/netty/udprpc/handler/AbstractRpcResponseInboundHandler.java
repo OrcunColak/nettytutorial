@@ -1,7 +1,6 @@
 package com.colak.netty.udprpc.handler;
 
 import com.colak.netty.udprpc.exception.RpcPeerException;
-import com.colak.netty.udprpc.exception.RpcTransportException;
 import com.colak.netty.udprpc.response.ResponseFutureRegistry;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -37,13 +36,5 @@ public abstract class AbstractRpcResponseInboundHandler<Key, Res> extends Simple
         } else {
             registry.complete(key, response);
         }
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        registry.failAll(
-                new RpcTransportException("Inbound handler failure", cause)
-        );
-        ctx.close();
     }
 }

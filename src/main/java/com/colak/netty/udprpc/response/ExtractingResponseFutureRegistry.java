@@ -37,11 +37,6 @@ public final class ExtractingResponseFutureRegistry<Key, Req, Res> implements Re
         delegate.fail(correlationKey, exception);
     }
 
-    @Override
-    public void failAll(RpcException exception) {
-        delegate.failAll(exception);
-    }
-
     public CompletableFuture<Res> registerRequest(Req request) {
         Key key = requestKeyExtractor.extract(request);
         if (key == null) {

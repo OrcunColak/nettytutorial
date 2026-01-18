@@ -13,8 +13,6 @@ public interface ResponseFutureRegistry<Key, Res> {
     void complete(Key correlationKey, Res response);
 
     void fail(Key correlationKey, RpcException exception);
-
-    void failAll(RpcException exception);
 }
 
 

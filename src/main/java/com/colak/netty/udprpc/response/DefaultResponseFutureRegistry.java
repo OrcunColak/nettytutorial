@@ -33,10 +33,4 @@ public class DefaultResponseFutureRegistry<Key, Res>
             future.completeExceptionally(exception);
         }
     }
-
-    @Override
-    public void failAll(RpcException exception) {
-        pending.forEach((k, f) -> f.completeExceptionally(exception));
-        pending.clear();
-    }
 }
