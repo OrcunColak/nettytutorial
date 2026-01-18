@@ -6,24 +6,17 @@ import com.colak.netty.udprpc.response.ResponseFutureRegistry;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
-/// ```
-/// pipeline.addLast(new UdpResponseDecoder());
-/// pipeline.addLast(
-///     new AbstractRpcResponseInboundHandler<>(
-///         responseFutureRegistry,
-///         MyResponse::getCorrelationId
-///     )
-/// );
-/// ```
-public abstract class AbstractRpcResponseInboundHandler<Res, K> extends SimpleChannelInboundHandler<Res> {
-    private final ResponseFutureRegistry<K, Res> registry;
+/// K - key
+/// Res - response
+public abstract class AbstractRpcResponseInboundHandler<Key, Res> extends SimpleChannelInboundHandler<Res> {
+    private final ResponseFutureRegistry<Key, Res> registry;
 
-    protected AbstractRpcResponseInboundHandler(ResponseFutureRegistry<K, Res> registry) {
+    protected AbstractRpcResponseInboundHandler(ResponseFutureRegistry<Key, Res> registry) {
         this.registry = registry;
     }
 
     // === Extension points ===
-    protected abstract K extractKey(Res response);
+    protected abstract Key extractKey(Res response);
 
     protected abstract boolean isErrorResponse(Res response);
 
@@ -34,7 +27,7 @@ public abstract class AbstractRpcResponseInboundHandler<Res, K> extends SimpleCh
     // === Core logic ===
     @Override
     protected final void channelRead0(ChannelHandlerContext ctx, Res response) {
-        K key = extractKey(response);
+        Key key = extractKey(response);
         if (key == null) {
             return;
         }

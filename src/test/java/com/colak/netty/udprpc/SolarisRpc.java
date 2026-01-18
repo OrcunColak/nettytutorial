@@ -1,6 +1,7 @@
 package com.colak.netty.udprpc;
 
 import com.colak.netty.NettyManager;
+import com.colak.netty.UdpEnvelope;
 import com.colak.netty.udpparams.UdpServerParameters;
 import com.colak.netty.udprpc.exception.RpcException;
 import com.colak.netty.udprpc.handler.CorrelationKeyExtractor;
@@ -8,6 +9,8 @@ import com.colak.netty.udprpc.response.DefaultResponseFutureRegistry;
 import com.colak.netty.udprpc.response.ExtractingResponseFutureRegistry;
 import com.colak.netty.udprpc.response.ResponseFutureRegistry;
 import lombok.extern.slf4j.Slf4j;
+
+import java.net.InetSocketAddress;
 
 @Slf4j
 public class SolarisRpc {
@@ -34,7 +37,8 @@ public class SolarisRpc {
         message.setErrorNo((short) 0);
 
         try {
-            SolarisMessage solarisMessage = udpBlockingRpcSender.sendAndAwait(channelId, message, BlockingRpcParameters.defaults());
+            UdpEnvelope<SolarisMessage> envelope = new UdpEnvelope<>(message, new InetSocketAddress("localhost", 54321));
+            UdpEnvelope<SolarisMessage> solarisMessage = udpBlockingRpcSender.sendAndAwait(channelId, envelope, BlockingRpcParameters.defaults());
             log.info("SolarisMessage {}", solarisMessage);
         } catch (RpcException | InterruptedException rpcException) {
             log.error("Exception from sendAndAwait", rpcException);
@@ -42,23 +46,19 @@ public class SolarisRpc {
         nettyManager.shutdown();
     }
 
-    private static ExtractingResponseFutureRegistry<
-            SolarisKey, SolarisMessage, SolarisMessage> getRegistry() {
+    private static ExtractingResponseFutureRegistry<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> getRegistry() {
+        ResponseFutureRegistry<SolarisKey, UdpEnvelope<SolarisMessage>> baseRegistry = new DefaultResponseFutureRegistry<>();
 
-        ResponseFutureRegistry<SolarisKey, SolarisMessage> baseRegistry = new DefaultResponseFutureRegistry<>();
+        CorrelationKeyExtractor<UdpEnvelope<SolarisMessage>, SolarisKey> keyExtractor = keyExtractor();
 
-        CorrelationKeyExtractor<SolarisMessage, SolarisKey> keyExtractor =
-                message -> new SolarisKey(
-                        message.getProtocolNo(),
-                        message.getSubType(),
-                        message.getMessageNo()
-                );
+        return new ExtractingResponseFutureRegistry<>(baseRegistry, keyExtractor, keyExtractor);
+    }
 
-        return new ExtractingResponseFutureRegistry<>(
-                baseRegistry,
-                keyExtractor,
-                keyExtractor
-        );
+    private static CorrelationKeyExtractor<UdpEnvelope<SolarisMessage>, SolarisKey> keyExtractor() {
+        return envelope -> {
+            SolarisMessage message = envelope.getPayload();
+            return new SolarisKey(message.getProtocolNo(), message.getSubType(), message.getMessageNo());
+        };
     }
 }
 

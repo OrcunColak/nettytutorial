@@ -5,6 +5,8 @@ import com.colak.netty.udprpc.handler.CorrelationKeyExtractor;
 
 import java.util.concurrent.CompletableFuture;
 
+/// Key - correlation key
+/// Res - response
 public final class ExtractingResponseFutureRegistry<Key, Req, Res> implements ResponseFutureRegistry<Key, Res> {
     private final ResponseFutureRegistry<Key, Res> delegate;
     private final CorrelationKeyExtractor<Req, Key> requestKeyExtractor;
