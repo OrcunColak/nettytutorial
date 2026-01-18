@@ -3,9 +3,9 @@ package com.colak.netty.udprpc;
 import com.colak.netty.udprpc.handler.AbstractRpcResponseInboundHandler;
 import com.colak.netty.udprpc.response.ResponseFutureRegistry;
 
-public class SolarisRpcInboundHandler extends AbstractRpcResponseInboundHandler<SolarisMessage,SolarisKey> {
+public class SolarisRpcInboundHandler extends AbstractRpcResponseInboundHandler<SolarisMessage, SolarisKey> {
 
-    protected SolarisRpcInboundHandler(ResponseFutureRegistry<SolarisKey,SolarisMessage> registry) {
+    protected SolarisRpcInboundHandler(ResponseFutureRegistry<SolarisMessage, SolarisKey> registry) {
         super(registry);
     }
 

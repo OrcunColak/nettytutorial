@@ -4,15 +4,16 @@ import com.colak.netty.udprpc.exception.RpcException;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface ResponseFutureRegistry<KEY, RES> {
+public interface ResponseFutureRegistry<Res, K> {
 
-    CompletableFuture<RES> register(KEY key);
+    CompletableFuture<Res> register(K correlationKey);
 
-    void complete(KEY key, RES response);
+    void complete(K correlationKey, Res response);
 
-    void fail(KEY key, RpcException exception);
+    void fail(K correlationKey, RpcException exception);
 
     void failAll(RpcException exception);
 }
+
 
 

@@ -13,13 +13,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 @RequiredArgsConstructor
-public final class UdpBlockingRpcSender<REQ, RES> {
+public final class UdpBlockingRpcSender<Req, Res, K> {
     private final NettyManager nettyManager;
-    private final ExtractingResponseFutureRegistry<REQ, RES, ?> registry;
+    private final ExtractingResponseFutureRegistry<Req, Res, K> registry;
 
-    public RES sendAndAwait(String channelId, REQ request, BlockingRpcParameters params
-    ) throws RpcException, InterruptedException {
-        CompletableFuture<RES> future = registry.register(request);
+    public Res sendAndAwait(String channelId, Req request, BlockingRpcParameters params)
+            throws RpcException, InterruptedException {
+        CompletableFuture<Res> future = registry.registerRequest(request);
         long timeoutMillis = params.timeoutMillis();
         try {
             for (int attempt = 0; attempt < params.maxAttempts(); attempt++) {
@@ -31,16 +31,18 @@ public final class UdpBlockingRpcSender<REQ, RES> {
                 }
             }
             RpcTimeoutException ex = new RpcTimeoutException("No response after " + params.maxAttempts() + " attempts");
-            registry.fail(request, ex);
+
+            registry.failRequest(request, ex);
             throw ex;
         } catch (InterruptedException e) {
             RpcTransportException ex = new RpcTransportException("RPC interrupted", e);
-            registry.fail(request, ex);
+
+            registry.failRequest(request, ex);
             Thread.currentThread().interrupt();
             throw e;
         } catch (ExecutionException e) {
             RpcException ex = mapExecutionException(e);
-            registry.fail(request, ex);
+            registry.failRequest(request, ex);
             throw ex;
         }
     }

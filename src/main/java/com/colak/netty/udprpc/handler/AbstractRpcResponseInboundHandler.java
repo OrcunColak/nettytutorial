@@ -15,39 +15,26 @@ import io.netty.channel.SimpleChannelInboundHandler;
 ///     )
 /// );
 /// ```
-public abstract class AbstractRpcResponseInboundHandler<RES, KEY>
-        extends SimpleChannelInboundHandler<RES> {
+public abstract class AbstractRpcResponseInboundHandler<Res, K> extends SimpleChannelInboundHandler<Res> {
+    private final ResponseFutureRegistry<Res, K> registry;
 
-    private final ResponseFutureRegistry<KEY, RES> registry;
-
-    protected AbstractRpcResponseInboundHandler(ResponseFutureRegistry<KEY, RES> registry) {
+    protected AbstractRpcResponseInboundHandler(ResponseFutureRegistry<Res, K> registry) {
         this.registry = registry;
     }
 
     // === Extension points ===
+    protected abstract K extractKey(Res response);
 
-    /**
-     * Extract correlation key from response
-     */
-    protected abstract KEY extractKey(RES response);
+    protected abstract boolean isErrorResponse(Res response);
 
-    /**
-     * Whether this response represents a remote error
-     */
-    protected abstract boolean isErrorResponse(RES response);
-
-    /**
-     * Convert error response into RpcPeerException
-     */
-    protected RpcPeerException toPeerException(RES response) {
+    protected RpcPeerException toPeerException(Res response) {
         return new RpcPeerException("Peer returned error", response);
     }
 
     // === Core logic ===
-
     @Override
-    protected final void channelRead0(ChannelHandlerContext ctx, RES response) {
-        KEY key = extractKey(response);
+    protected final void channelRead0(ChannelHandlerContext ctx, Res response) {
+        K key = extractKey(response);
         if (key == null) {
             return;
         }

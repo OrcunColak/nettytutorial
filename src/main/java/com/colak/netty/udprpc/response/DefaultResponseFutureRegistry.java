@@ -6,27 +6,27 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class DefaultResponseFutureRegistry<KEY, RES>
-        implements ResponseFutureRegistry<KEY, RES> {
+public class DefaultResponseFutureRegistry<Res, K>
+        implements ResponseFutureRegistry<Res, K> {
 
-    private final ConcurrentMap<KEY, CompletableFuture<RES>> pending = new ConcurrentHashMap<>();
+    private final ConcurrentMap<K, CompletableFuture<Res>> pending = new ConcurrentHashMap<>();
 
     @Override
-    public CompletableFuture<RES> register(KEY key) {
-        return pending.computeIfAbsent(key, k -> new CompletableFuture<>());
+    public CompletableFuture<Res> register(K correlationKey) {
+        return pending.computeIfAbsent(correlationKey, k -> new CompletableFuture<>());
     }
 
     @Override
-    public void complete(KEY key, RES response) {
-        CompletableFuture<RES> future = pending.remove(key);
+    public void complete(K correlationKey, Res response) {
+        CompletableFuture<Res> future = pending.remove(correlationKey);
         if (future != null) {
             future.complete(response);
         }
     }
 
     @Override
-    public void fail(KEY key, RpcException exception) {
-        CompletableFuture<RES> future = pending.remove(key);
+    public void fail(K correlationKey, RpcException exception) {
+        CompletableFuture<Res> future = pending.remove(correlationKey);
         if (future != null) {
             future.completeExceptionally(exception);
         }
