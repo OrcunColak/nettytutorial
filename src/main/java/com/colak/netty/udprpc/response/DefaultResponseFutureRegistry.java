@@ -9,8 +9,7 @@ import java.util.concurrent.ConcurrentMap;
 public class DefaultResponseFutureRegistry<KEY, RES>
         implements ResponseFutureRegistry<KEY, RES> {
 
-    private final ConcurrentMap<KEY, CompletableFuture<RES>> pending =
-            new ConcurrentHashMap<>();
+    private final ConcurrentMap<KEY, CompletableFuture<RES>> pending = new ConcurrentHashMap<>();
 
     @Override
     public CompletableFuture<RES> register(KEY key) {

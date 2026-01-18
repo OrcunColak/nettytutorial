@@ -1,4 +1,10 @@
 package com.colak.netty.udprpc;
 
-public record SolarisKey(short protocolNo, short subType, short messageNo) {
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+public class SolarisKey {
+    private final short protocolNo;
+    private final short subType;
+    private final short messageNo;
 }
