@@ -4,7 +4,7 @@ import com.colak.netty.NettyManager;
 import com.colak.netty.UdpEnvelope;
 import com.colak.netty.udpparams.UdpServerParameters;
 import com.colak.netty.udprpc.exception.RpcException;
-import com.colak.netty.udprpc.handler.CorrelationKeyExtractor;
+import com.colak.netty.udprpc.response.CorrelationStrategy;
 import com.colak.netty.udprpc.response.DefaultResponseFutureRegistry;
 import com.colak.netty.udprpc.response.ExtractingResponseFutureRegistry;
 import com.colak.netty.udprpc.response.ResponseFutureRegistry;
@@ -49,15 +49,24 @@ public class SolarisRpc {
     private static ExtractingResponseFutureRegistry<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> getRegistry() {
         ResponseFutureRegistry<SolarisKey, UdpEnvelope<SolarisMessage>> baseRegistry = new DefaultResponseFutureRegistry<>();
 
-        CorrelationKeyExtractor<UdpEnvelope<SolarisMessage>, SolarisKey> keyExtractor = keyExtractor();
+        CorrelationStrategy<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> keyExtractor = keyExtractor();
 
-        return new ExtractingResponseFutureRegistry<>(baseRegistry, keyExtractor, keyExtractor);
+        return new ExtractingResponseFutureRegistry<>(baseRegistry, keyExtractor);
     }
 
-    private static CorrelationKeyExtractor<UdpEnvelope<SolarisMessage>, SolarisKey> keyExtractor() {
-        return envelope -> {
-            SolarisMessage message = envelope.getPayload();
-            return new SolarisKey(message.getProtocolNo(), message.getSubType(), message.getMessageNo());
+    private static CorrelationStrategy<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> keyExtractor() {
+        return new CorrelationStrategy<>() {
+            @Override
+            public SolarisKey fromRequest(UdpEnvelope<SolarisMessage> envelope) {
+                SolarisMessage message = envelope.getPayload();
+                return new SolarisKey(message.getProtocolNo(), message.getMessageNo(), message.getErrorNo());
+            }
+
+            @Override
+            public SolarisKey fromResponse(UdpEnvelope<SolarisMessage> envelope) {
+                SolarisMessage message = envelope.getPayload();
+                return new SolarisKey(message.getProtocolNo(), message.getMessageNo(), message.getErrorNo());
+            }
         };
     }
 }

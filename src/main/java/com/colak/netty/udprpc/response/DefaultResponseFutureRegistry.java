@@ -8,8 +8,7 @@ import java.util.concurrent.ConcurrentMap;
 
 /// Key - correlation key
 /// Res - response
-public class DefaultResponseFutureRegistry<Key, Res>
-        implements ResponseFutureRegistry<Key, Res> {
+public class DefaultResponseFutureRegistry<Key, Res> implements ResponseFutureRegistry<Key, Res> {
 
     private final ConcurrentMap<Key, CompletableFuture<Res>> pending = new ConcurrentHashMap<>();
 

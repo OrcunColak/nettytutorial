@@ -1,7 +1,6 @@
 package com.colak.netty.udprpc.response;
 
 import com.colak.netty.udprpc.exception.RpcException;
-import com.colak.netty.udprpc.handler.CorrelationKeyExtractor;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -9,17 +8,14 @@ import java.util.concurrent.CompletableFuture;
 /// Res - response
 public final class ExtractingResponseFutureRegistry<Key, Req, Res> implements ResponseFutureRegistry<Key, Res> {
     private final ResponseFutureRegistry<Key, Res> delegate;
-    private final CorrelationKeyExtractor<Req, Key> requestKeyExtractor;
-    private final CorrelationKeyExtractor<Res, Key> responseKeyExtractor;
+    private final CorrelationStrategy<Key,Req, Res> correlation;
 
     public ExtractingResponseFutureRegistry(
             ResponseFutureRegistry<Key, Res> delegate,
-            CorrelationKeyExtractor<Req, Key> requestKeyExtractor,
-            CorrelationKeyExtractor<Res, Key> responseKeyExtractor
+            CorrelationStrategy<Key,Req, Res> correlation
     ) {
         this.delegate = delegate;
-        this.requestKeyExtractor = requestKeyExtractor;
-        this.responseKeyExtractor = responseKeyExtractor;
+        this.correlation = correlation;
     }
 
     @Override
@@ -38,7 +34,7 @@ public final class ExtractingResponseFutureRegistry<Key, Req, Res> implements Re
     }
 
     public CompletableFuture<Res> registerRequest(Req request) {
-        Key key = requestKeyExtractor.extract(request);
+        Key key = correlation.fromRequest(request);
         if (key == null) {
             throw new IllegalArgumentException("Cannot extract correlation key from request");
         }
@@ -46,21 +42,21 @@ public final class ExtractingResponseFutureRegistry<Key, Req, Res> implements Re
     }
 
     public void failRequest(Req request, RpcException ex) {
-        Key key = requestKeyExtractor.extract(request);
+        Key key = correlation.fromRequest(request);
         if (key != null) {
             fail(key, ex);
         }
     }
 
     public void completeFromResponse(Res response) {
-        Key key = responseKeyExtractor.extract(response);
+        Key key = correlation.fromResponse(response);
         if (key != null) {
             complete(key, response);
         }
     }
 
     public void failFromResponse(Res response, RpcException ex) {
-        Key key = responseKeyExtractor.extract(response);
+        Key key = correlation.fromResponse(response);
         if (key != null) {
             fail(key, ex);
         }
