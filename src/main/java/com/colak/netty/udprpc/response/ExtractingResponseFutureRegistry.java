@@ -3,62 +3,71 @@ package com.colak.netty.udprpc.response;
 import com.colak.netty.udprpc.exception.RpcException;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /// Key - correlation key
 /// Res - response
-public final class ExtractingResponseFutureRegistry<Key, Req, Res> implements ResponseFutureRegistry<Key, Res> {
-    private final ResponseFutureRegistry<Key, Res> delegate;
-    private final CorrelationStrategy<Key,Req, Res> correlation;
+public final class ExtractingResponseFutureRegistry<Key, Req, Res>
+        implements ResponseFutureRegistry<Req, Res> {
 
-    public ExtractingResponseFutureRegistry(
-            ResponseFutureRegistry<Key, Res> delegate,
-            CorrelationStrategy<Key,Req, Res> correlation
-    ) {
-        this.delegate = delegate;
-        this.correlation = correlation;
+    private final ConcurrentMap<Key, CompletableFuture<Res>> pending = new ConcurrentHashMap<>();
+
+    private final CorrelationStrategy<Key, Req, Res> correlationStrategy;
+
+    public ExtractingResponseFutureRegistry(CorrelationStrategy<Key, Req, Res> correlationStrategy) {
+        this.correlationStrategy = correlationStrategy;
     }
+
+    // ===== Sender side =====
 
     @Override
-    public CompletableFuture<Res> register(Key correlationKey) {
-        return delegate.register(correlationKey);
-    }
-
-    @Override
-    public void complete(Key correlationKey, Res response) {
-        delegate.complete(correlationKey, response);
-    }
-
-    @Override
-    public void fail(Key correlationKey, RpcException exception) {
-        delegate.fail(correlationKey, exception);
-    }
-
     public CompletableFuture<Res> registerRequest(Req request) {
-        Key key = correlation.fromRequest(request);
+        Key key = correlationStrategy.fromRequest(request);
         if (key == null) {
             throw new IllegalArgumentException("Cannot extract correlation key from request");
         }
-        return register(key);
+        return pending.computeIfAbsent(key, k -> new CompletableFuture<>());
     }
 
-    public void failRequest(Req request, RpcException ex) {
-        Key key = correlation.fromRequest(request);
+    @Override
+    public void failRequest(Req request, RpcException exception) {
+        Key key = correlationStrategy.fromRequest(request);
         if (key != null) {
-            fail(key, ex);
+            failByKey(key, exception);
         }
     }
 
+    // ===== Inbound side =====
+
+    @Override
     public void completeFromResponse(Res response) {
-        Key key = correlation.fromResponse(response);
+        Key key = correlationStrategy.fromResponse(response);
         if (key != null) {
-            complete(key, response);
+            completeByKey(key, response);
         }
     }
 
-    public void failFromResponse(Res response, RpcException ex) {
-        Key key = correlation.fromResponse(response);
+    @Override
+    public void failFromResponse(Res response, RpcException exception) {
+        Key key = correlationStrategy.fromResponse(response);
         if (key != null) {
-            fail(key, ex);
+            failByKey(key, exception);
+        }
+    }
+
+    // ===== Internal helpers =====
+    private void completeByKey(Key key, Res response) {
+        CompletableFuture<Res> future = pending.remove(key);
+        if (future != null) {
+            future.complete(response);
+        }
+    }
+
+    private void failByKey(Key key, RpcException exception) {
+        CompletableFuture<Res> future = pending.remove(key);
+        if (future != null) {
+            future.completeExceptionally(exception);
         }
     }
 }

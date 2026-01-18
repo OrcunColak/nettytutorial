@@ -1,17 +1,17 @@
 package com.colak.netty.udprpc;
 
+import com.colak.netty.UdpEnvelope;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.handler.codec.MessageToMessageEncoder;
 
-import java.net.InetSocketAddress;
 import java.util.List;
 
-public class SolarisEncoder extends MessageToMessageEncoder<SolarisMessage> {
+public class SolarisEncoder extends MessageToMessageEncoder<UdpEnvelope<SolarisMessage>> {
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, SolarisMessage message, List<Object> out) {
+    protected void encode(ChannelHandlerContext ctx, UdpEnvelope<SolarisMessage> envelope, List<Object> out) {
         // 1. Serialize
         byte[] bytes = new  byte[1024];
 
@@ -20,7 +20,7 @@ public class SolarisEncoder extends MessageToMessageEncoder<SolarisMessage> {
         buf.writeBytes(bytes);
 
         // 3. Wrap as DatagramPacket
-        DatagramPacket packet = new DatagramPacket(buf, new InetSocketAddress("localhost", 54321));
+        DatagramPacket packet = new DatagramPacket(buf, envelope.getSocketAddress());
 
         // 4. Pass to Netty
         out.add(packet);

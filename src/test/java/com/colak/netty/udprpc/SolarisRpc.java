@@ -5,9 +5,7 @@ import com.colak.netty.UdpEnvelope;
 import com.colak.netty.udpparams.UdpServerParameters;
 import com.colak.netty.udprpc.exception.RpcException;
 import com.colak.netty.udprpc.response.CorrelationStrategy;
-import com.colak.netty.udprpc.response.DefaultResponseFutureRegistry;
 import com.colak.netty.udprpc.response.ExtractingResponseFutureRegistry;
-import com.colak.netty.udprpc.response.ResponseFutureRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
@@ -47,11 +45,9 @@ public class SolarisRpc {
     }
 
     private static ExtractingResponseFutureRegistry<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> getRegistry() {
-        ResponseFutureRegistry<SolarisKey, UdpEnvelope<SolarisMessage>> baseRegistry = new DefaultResponseFutureRegistry<>();
-
         CorrelationStrategy<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> keyExtractor = keyExtractor();
 
-        return new ExtractingResponseFutureRegistry<>(baseRegistry, keyExtractor);
+        return new ExtractingResponseFutureRegistry<>(keyExtractor);
     }
 
     private static CorrelationStrategy<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> keyExtractor() {
