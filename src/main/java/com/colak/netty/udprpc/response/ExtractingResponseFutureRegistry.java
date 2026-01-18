@@ -5,15 +5,15 @@ import com.colak.netty.udprpc.handler.CorrelationKeyExtractor;
 
 import java.util.concurrent.CompletableFuture;
 
-public final class ExtractingResponseFutureRegistry<Req, Res, K> implements ResponseFutureRegistry<Res, K> {
-    private final ResponseFutureRegistry<Res, K> delegate;
-    private final CorrelationKeyExtractor<Req, K> requestKeyExtractor;
-    private final CorrelationKeyExtractor<Res, K> responseKeyExtractor;
+public final class ExtractingResponseFutureRegistry<Key, Req, Res> implements ResponseFutureRegistry<Key, Res> {
+    private final ResponseFutureRegistry<Key, Res> delegate;
+    private final CorrelationKeyExtractor<Req, Key> requestKeyExtractor;
+    private final CorrelationKeyExtractor<Res, Key> responseKeyExtractor;
 
     public ExtractingResponseFutureRegistry(
-            ResponseFutureRegistry<Res, K> delegate,
-            CorrelationKeyExtractor<Req, K> requestKeyExtractor,
-            CorrelationKeyExtractor<Res, K> responseKeyExtractor
+            ResponseFutureRegistry<Key, Res> delegate,
+            CorrelationKeyExtractor<Req, Key> requestKeyExtractor,
+            CorrelationKeyExtractor<Res, Key> responseKeyExtractor
     ) {
         this.delegate = delegate;
         this.requestKeyExtractor = requestKeyExtractor;
@@ -21,17 +21,17 @@ public final class ExtractingResponseFutureRegistry<Req, Res, K> implements Resp
     }
 
     @Override
-    public CompletableFuture<Res> register(K correlationKey) {
+    public CompletableFuture<Res> register(Key correlationKey) {
         return delegate.register(correlationKey);
     }
 
     @Override
-    public void complete(K correlationKey, Res response) {
+    public void complete(Key correlationKey, Res response) {
         delegate.complete(correlationKey, response);
     }
 
     @Override
-    public void fail(K correlationKey, RpcException exception) {
+    public void fail(Key correlationKey, RpcException exception) {
         delegate.fail(correlationKey, exception);
     }
 
@@ -41,31 +41,31 @@ public final class ExtractingResponseFutureRegistry<Req, Res, K> implements Resp
     }
 
     public CompletableFuture<Res> registerRequest(Req request) {
-        K key = requestKeyExtractor.extract(request);
+        Key key = requestKeyExtractor.extract(request);
         if (key == null) {
             throw new IllegalArgumentException("Cannot extract correlation key from request");
         }
-        return delegate.register(key);
+        return register(key);
     }
 
     public void failRequest(Req request, RpcException ex) {
-        K key = requestKeyExtractor.extract(request);
+        Key key = requestKeyExtractor.extract(request);
         if (key != null) {
-            delegate.fail(key, ex);
+            fail(key, ex);
         }
     }
 
     public void completeFromResponse(Res response) {
-        K key = responseKeyExtractor.extract(response);
+        Key key = responseKeyExtractor.extract(response);
         if (key != null) {
-            delegate.complete(key, response);
+            complete(key, response);
         }
     }
 
     public void failFromResponse(Res response, RpcException ex) {
-        K key = responseKeyExtractor.extract(response);
+        Key key = responseKeyExtractor.extract(response);
         if (key != null) {
-            delegate.fail(key, ex);
+            fail(key, ex);
         }
     }
 }

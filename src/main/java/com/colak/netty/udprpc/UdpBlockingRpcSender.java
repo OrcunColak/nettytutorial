@@ -13,9 +13,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 @RequiredArgsConstructor
-public final class UdpBlockingRpcSender<Req, Res, K> {
+public final class UdpBlockingRpcSender<Key, Req, Res> {
     private final NettyManager nettyManager;
-    private final ExtractingResponseFutureRegistry<Req, Res, K> registry;
+    private final ExtractingResponseFutureRegistry<Key, Req, Res> registry;
 
     public Res sendAndAwait(String channelId, Req request, BlockingRpcParameters params)
             throws RpcException, InterruptedException {

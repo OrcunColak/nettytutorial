@@ -5,7 +5,7 @@ import com.colak.netty.udprpc.response.ResponseFutureRegistry;
 
 public class SolarisRpcInboundHandler extends AbstractRpcResponseInboundHandler<SolarisMessage, SolarisKey> {
 
-    protected SolarisRpcInboundHandler(ResponseFutureRegistry<SolarisMessage, SolarisKey> registry) {
+    protected SolarisRpcInboundHandler(ResponseFutureRegistry<SolarisKey, SolarisMessage> registry) {
         super(registry);
     }
 

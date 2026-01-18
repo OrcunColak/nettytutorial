@@ -16,9 +16,9 @@ import io.netty.channel.SimpleChannelInboundHandler;
 /// );
 /// ```
 public abstract class AbstractRpcResponseInboundHandler<Res, K> extends SimpleChannelInboundHandler<Res> {
-    private final ResponseFutureRegistry<Res, K> registry;
+    private final ResponseFutureRegistry<K, Res> registry;
 
-    protected AbstractRpcResponseInboundHandler(ResponseFutureRegistry<Res, K> registry) {
+    protected AbstractRpcResponseInboundHandler(ResponseFutureRegistry<K, Res> registry) {
         this.registry = registry;
     }
 
