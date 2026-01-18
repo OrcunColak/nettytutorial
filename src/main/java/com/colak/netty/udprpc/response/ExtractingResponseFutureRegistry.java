@@ -26,7 +26,7 @@ public final class ExtractingResponseFutureRegistry<Key, Req, Res>
         if (key == null) {
             throw new IllegalArgumentException("Cannot extract correlation key from request");
         }
-        return pending.computeIfAbsent(key, k -> new CompletableFuture<>());
+        return pending.computeIfAbsent(key, _ -> new CompletableFuture<>());
     }
 
     @Override
