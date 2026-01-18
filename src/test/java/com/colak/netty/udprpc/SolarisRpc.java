@@ -55,12 +55,16 @@ public class SolarisRpc {
             @Override
             public SolarisKey fromRequest(UdpEnvelope<SolarisMessage> envelope) {
                 SolarisMessage message = envelope.getPayload();
-                return new SolarisKey(message.getProtocolNo(), message.getMessageNo(), message.getErrorNo());
+                return toSolarisKey(message);
             }
 
             @Override
             public SolarisKey fromResponse(UdpEnvelope<SolarisMessage> envelope) {
                 SolarisMessage message = envelope.getPayload();
+                return toSolarisKey(message);
+            }
+
+            private SolarisKey toSolarisKey(SolarisMessage message) {
                 return new SolarisKey(message.getProtocolNo(), message.getMessageNo(), message.getErrorNo());
             }
         };

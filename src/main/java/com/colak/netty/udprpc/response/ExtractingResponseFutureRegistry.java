@@ -20,7 +20,6 @@ public final class ExtractingResponseFutureRegistry<Key, Req, Res>
     }
 
     // ===== Sender side =====
-
     @Override
     public CompletableFuture<Res> registerRequest(Req request) {
         Key key = correlationStrategy.fromRequest(request);
@@ -39,7 +38,6 @@ public final class ExtractingResponseFutureRegistry<Key, Req, Res>
     }
 
     // ===== Inbound side =====
-
     @Override
     public void completeFromResponse(Res response) {
         Key key = correlationStrategy.fromResponse(response);
