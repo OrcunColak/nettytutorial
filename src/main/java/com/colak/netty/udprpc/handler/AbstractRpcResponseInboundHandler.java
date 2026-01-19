@@ -5,8 +5,6 @@ import com.colak.netty.udprpc.response.ResponseFutureRegistry;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
-/// K - key
-/// Res - response
 public abstract class AbstractRpcResponseInboundHandler<Req, Res> extends SimpleChannelInboundHandler<Res> {
     private final ResponseFutureRegistry<Req, Res> registry;
 
