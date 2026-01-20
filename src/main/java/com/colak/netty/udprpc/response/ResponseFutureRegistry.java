@@ -4,19 +4,17 @@ import com.colak.netty.udprpc.exception.RpcException;
 
 import java.util.concurrent.CompletableFuture;
 
-/// Key - correlation key
-/// Res - response
-public interface ResponseFutureRegistry<Key, Res> {
+public interface ResponseFutureRegistry<CorrelationId, Response> {
 
     // === Sender side ===
-    CompletableFuture<Res> registerRequest(Key key);
+    CompletableFuture<Response> registerRequest(CorrelationId correlationId);
 
-    void failRequest(Key key, RpcException exception);
+    void failRequest(CorrelationId correlationId, RpcException exception);
 
     // === Inbound side ===
-    void completeFromResponse(Key key, Res response);
+    void completeFromResponse(CorrelationId correlationId, Response response);
 
-    void failFromResponse(Key key, RpcException exception);
+    void failFromResponse(CorrelationId correlationId, RpcException exception);
 }
 
 

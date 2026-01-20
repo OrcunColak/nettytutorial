@@ -12,7 +12,7 @@ import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ExtractingResponseFutureRegistryTest {
+class CorrelationResponseRegistryTest {
 
     @Test
     void shouldTimeoutWhenNoResponseArrives() {
@@ -31,8 +31,8 @@ class ExtractingResponseFutureRegistryTest {
         assertThrows(TimeoutException.class, () -> future.get(50, TimeUnit.MILLISECONDS));
     }
 
-    private ExtractingResponseFutureRegistry<SolarisKey, UdpEnvelope<SolarisMessage>> createRegistry() {
-        return new ExtractingResponseFutureRegistry<>();
+    private CorrelationResponseRegistry<SolarisKey, UdpEnvelope<SolarisMessage>> createRegistry() {
+        return new CorrelationResponseRegistry<>();
     }
 
     private CorrelationStrategy<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> createCorrelationStrategy() {

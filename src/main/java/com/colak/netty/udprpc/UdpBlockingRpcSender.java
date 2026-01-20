@@ -5,7 +5,7 @@ import com.colak.netty.udprpc.exception.RpcException;
 import com.colak.netty.udprpc.exception.RpcTimeoutException;
 import com.colak.netty.udprpc.exception.RpcTransportException;
 import com.colak.netty.udprpc.response.CorrelationStrategy;
-import com.colak.netty.udprpc.response.ExtractingResponseFutureRegistry;
+import com.colak.netty.udprpc.response.CorrelationResponseRegistry;
 import lombok.RequiredArgsConstructor;
 
 import java.util.concurrent.CompletableFuture;
@@ -16,7 +16,7 @@ import java.util.concurrent.TimeoutException;
 @RequiredArgsConstructor
 public final class UdpBlockingRpcSender<Key, Req, Res> {
     private final NettyManager nettyManager;
-    private final ExtractingResponseFutureRegistry<Key, Res> registry;
+    private final CorrelationResponseRegistry<Key, Res> registry;
     private final CorrelationStrategy<Key, Req, Res> correlationStrategy;
 
     public Res sendAndAwait(String channelId, Req request, BlockingRpcParameters params)

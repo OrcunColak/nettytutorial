@@ -5,7 +5,7 @@ import com.colak.netty.UdpEnvelope;
 import com.colak.netty.udpparams.UdpServerParameters;
 import com.colak.netty.udprpc.exception.RpcException;
 import com.colak.netty.udprpc.response.CorrelationStrategy;
-import com.colak.netty.udprpc.response.ExtractingResponseFutureRegistry;
+import com.colak.netty.udprpc.response.CorrelationResponseRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
@@ -45,8 +45,8 @@ public class SolarisRpc {
         nettyManager.shutdown();
     }
 
-    private static ExtractingResponseFutureRegistry<SolarisKey, UdpEnvelope<SolarisMessage>> getRegistry() {
-        return new ExtractingResponseFutureRegistry<>();
+    private static CorrelationResponseRegistry<SolarisKey, UdpEnvelope<SolarisMessage>> getRegistry() {
+        return new CorrelationResponseRegistry<>();
     }
 
     private static CorrelationStrategy<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> correlationStrategy() {

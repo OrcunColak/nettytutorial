@@ -7,32 +7,33 @@ import com.colak.netty.udprpc.response.ResponseFutureRegistry;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
-public abstract class AbstractRpcResponseInboundHandler<Key,Req, Res> extends SimpleChannelInboundHandler<Res> {
-    private final ResponseFutureRegistry<Key, Res> registry;
-    private final CorrelationStrategy<Key, Req, Res> correlationStrategy;
+public abstract class AbstractRpcResponseInboundHandler<CorrelationId, Request, Response>
+        extends SimpleChannelInboundHandler<Response> {
+    private final ResponseFutureRegistry<CorrelationId, Response> registry;
+    private final CorrelationStrategy<CorrelationId, Request, Response> correlationStrategy;
 
-    protected AbstractRpcResponseInboundHandler(ResponseFutureRegistry<Key, Res> registry,
-                                                CorrelationStrategy<Key, Req, Res> correlationStrategy) {
+    protected AbstractRpcResponseInboundHandler(ResponseFutureRegistry<CorrelationId, Response> registry,
+                                                CorrelationStrategy<CorrelationId, Request, Response> correlationStrategy) {
         this.registry = registry;
         this.correlationStrategy = correlationStrategy;
     }
 
     // === Extension points ===
-    protected abstract boolean isErrorResponse(Res response);
+    protected abstract boolean isErrorResponse(Response response);
 
-    protected RpcPeerException toPeerException(Res response) {
+    protected RpcPeerException toPeerException(Response response) {
         return new RpcPeerException("Peer returned error", response);
     }
 
     // === Core logic ===
     @Override
-    protected final void channelRead0(ChannelHandlerContext ctx, Res response) {
-        Key key = correlationStrategy.fromResponse(response);
+    protected final void channelRead0(ChannelHandlerContext ctx, Response response) {
+        CorrelationId correlationId = correlationStrategy.fromResponse(response);
         if (isErrorResponse(response)) {
             RpcException rpcException = toPeerException(response);
-            registry.failFromResponse(key, rpcException);
+            registry.failFromResponse(correlationId, rpcException);
         } else {
-            registry.completeFromResponse(key,response);
+            registry.completeFromResponse(correlationId, response);
         }
     }
 }

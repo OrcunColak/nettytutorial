@@ -2,7 +2,7 @@ package com.colak.netty.udprpc;
 
 import com.colak.netty.UdpEnvelope;
 import com.colak.netty.udprpc.response.CorrelationStrategy;
-import com.colak.netty.udprpc.response.ExtractingResponseFutureRegistry;
+import com.colak.netty.udprpc.response.CorrelationResponseRegistry;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.jupiter.api.Test;
 
@@ -53,8 +53,8 @@ class SolarisRpcInboundHandlerTest {
     }
 
 
-    private ExtractingResponseFutureRegistry<SolarisKey, UdpEnvelope<SolarisMessage>> createRegistry() {
-        return new ExtractingResponseFutureRegistry<>();
+    private CorrelationResponseRegistry<SolarisKey, UdpEnvelope<SolarisMessage>> createRegistry() {
+        return new CorrelationResponseRegistry<>();
     }
 
     private CorrelationStrategy<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> createCorrelationStrategy() {
