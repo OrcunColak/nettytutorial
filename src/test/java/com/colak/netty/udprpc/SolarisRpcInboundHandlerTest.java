@@ -9,10 +9,8 @@ import org.junit.jupiter.api.Test;
 import java.net.InetSocketAddress;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class SolarisRpcInboundHandlerTest {
 
@@ -22,8 +20,9 @@ class SolarisRpcInboundHandlerTest {
     @Test
     void testResponse() throws Exception {
         var registry = createRegistry();
+        var correlationStrategy = createCorrelationStrategy();
 
-        SolarisRpcInboundHandler handler = new SolarisRpcInboundHandler(registry);
+        SolarisRpcInboundHandler handler = new SolarisRpcInboundHandler(registry, correlationStrategy);
 
         EmbeddedChannel channel = new EmbeddedChannel(handler);
 
@@ -34,7 +33,8 @@ class SolarisRpcInboundHandlerTest {
         UdpEnvelope<SolarisMessage> requestEnvelope = new UdpEnvelope<>(request, destinationAddress);
 
         // register RPC future (this is what sendAndAwait does internally)
-        CompletableFuture<UdpEnvelope<SolarisMessage>> future = registry.registerRequest(requestEnvelope);
+        SolarisKey solarisKey = correlationStrategy.fromRequest(requestEnvelope);
+        CompletableFuture<UdpEnvelope<SolarisMessage>> future = registry.registerRequest(solarisKey);
 
         // when – simulate response arriving from the network
         SolarisMessage response = new SolarisMessage((short) 1, (short) 2);
@@ -53,9 +53,12 @@ class SolarisRpcInboundHandlerTest {
     }
 
 
+    private ExtractingResponseFutureRegistry<SolarisKey, UdpEnvelope<SolarisMessage>> createRegistry() {
+        return new ExtractingResponseFutureRegistry<>();
+    }
 
-    private ExtractingResponseFutureRegistry<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> createRegistry() {
-        CorrelationStrategy<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> strategy = new CorrelationStrategy<>() {
+    private CorrelationStrategy<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> createCorrelationStrategy() {
+        return new CorrelationStrategy<>() {
             @Override
             public SolarisKey fromRequest(UdpEnvelope<SolarisMessage> envelope) {
                 return toKey(envelope.getPayload());
@@ -74,6 +77,5 @@ class SolarisRpcInboundHandlerTest {
                 );
             }
         };
-        return new ExtractingResponseFutureRegistry<>(strategy);
     }
 }

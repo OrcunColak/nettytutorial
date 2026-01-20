@@ -17,6 +17,7 @@ class ExtractingResponseFutureRegistryTest {
     @Test
     void shouldTimeoutWhenNoResponseArrives() {
         var registry = createRegistry();
+        var correlationStrategy = createCorrelationStrategy();
 
         SolarisMessage request = new SolarisMessage((short) 1, (short) 2);
         request.setMessageNo((short) 3);
@@ -24,13 +25,18 @@ class ExtractingResponseFutureRegistryTest {
 
         UdpEnvelope<SolarisMessage> requestEnvelope = new UdpEnvelope<>(request, new InetSocketAddress("localhost", 1111));
 
-        CompletableFuture<UdpEnvelope<SolarisMessage>> future = registry.registerRequest(requestEnvelope);
+        SolarisKey solarisKey = correlationStrategy.fromRequest(requestEnvelope);
+        CompletableFuture<UdpEnvelope<SolarisMessage>> future = registry.registerRequest(solarisKey);
 
         assertThrows(TimeoutException.class, () -> future.get(50, TimeUnit.MILLISECONDS));
     }
 
-    private ExtractingResponseFutureRegistry<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> createRegistry() {
-        CorrelationStrategy<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> strategy = new CorrelationStrategy<>() {
+    private ExtractingResponseFutureRegistry<SolarisKey, UdpEnvelope<SolarisMessage>> createRegistry() {
+        return new ExtractingResponseFutureRegistry<>();
+    }
+
+    private CorrelationStrategy<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> createCorrelationStrategy() {
+        return new CorrelationStrategy<>() {
             @Override
             public SolarisKey fromRequest(UdpEnvelope<SolarisMessage> envelope) {
                 return toKey(envelope.getPayload());
@@ -49,7 +55,6 @@ class ExtractingResponseFutureRegistryTest {
                 );
             }
         };
-        return new ExtractingResponseFutureRegistry<>(strategy);
     }
 
 }

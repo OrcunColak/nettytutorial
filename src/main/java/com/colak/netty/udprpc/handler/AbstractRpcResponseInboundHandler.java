@@ -1,15 +1,20 @@
 package com.colak.netty.udprpc.handler;
 
+import com.colak.netty.udprpc.exception.RpcException;
 import com.colak.netty.udprpc.exception.RpcPeerException;
+import com.colak.netty.udprpc.response.CorrelationStrategy;
 import com.colak.netty.udprpc.response.ResponseFutureRegistry;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
-public abstract class AbstractRpcResponseInboundHandler<Req, Res> extends SimpleChannelInboundHandler<Res> {
-    private final ResponseFutureRegistry<Req, Res> registry;
+public abstract class AbstractRpcResponseInboundHandler<Key,Req, Res> extends SimpleChannelInboundHandler<Res> {
+    private final ResponseFutureRegistry<Key, Res> registry;
+    private final CorrelationStrategy<Key, Req, Res> correlationStrategy;
 
-    protected AbstractRpcResponseInboundHandler(ResponseFutureRegistry<Req, Res> registry) {
+    protected AbstractRpcResponseInboundHandler(ResponseFutureRegistry<Key, Res> registry,
+                                                CorrelationStrategy<Key, Req, Res> correlationStrategy) {
         this.registry = registry;
+        this.correlationStrategy = correlationStrategy;
     }
 
     // === Extension points ===
@@ -22,10 +27,12 @@ public abstract class AbstractRpcResponseInboundHandler<Req, Res> extends Simple
     // === Core logic ===
     @Override
     protected final void channelRead0(ChannelHandlerContext ctx, Res response) {
+        Key key = correlationStrategy.fromResponse(response);
         if (isErrorResponse(response)) {
-            registry.failFromResponse(response, toPeerException(response));
+            RpcException rpcException = toPeerException(response);
+            registry.failFromResponse(key, rpcException);
         } else {
-            registry.completeFromResponse(response);
+            registry.completeFromResponse(key,response);
         }
     }
 }

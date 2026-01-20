@@ -6,17 +6,17 @@ import java.util.concurrent.CompletableFuture;
 
 /// Key - correlation key
 /// Res - response
-public interface ResponseFutureRegistry<Req, Res> {
+public interface ResponseFutureRegistry<Key, Res> {
 
     // === Sender side ===
-    CompletableFuture<Res> registerRequest(Req request);
+    CompletableFuture<Res> registerRequest(Key key);
 
-    void failRequest(Req request, RpcException exception);
+    void failRequest(Key key, RpcException exception);
 
     // === Inbound side ===
-    void completeFromResponse(Res response);
+    void completeFromResponse(Key key, Res response);
 
-    void failFromResponse(Res response, RpcException exception);
+    void failFromResponse(Key key, RpcException exception);
 }
 
 

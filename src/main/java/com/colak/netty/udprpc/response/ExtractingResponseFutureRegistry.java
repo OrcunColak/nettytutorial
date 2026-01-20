@@ -8,50 +8,34 @@ import java.util.concurrent.ConcurrentMap;
 
 /// Key - correlation key
 /// Res - response
-public final class ExtractingResponseFutureRegistry<Key, Req, Res>
-        implements ResponseFutureRegistry<Req, Res> {
+// Key - correlation key
+
+/// Res - response
+public final class ExtractingResponseFutureRegistry<Key, Res>
+        implements ResponseFutureRegistry<Key, Res> {
 
     private final ConcurrentMap<Key, CompletableFuture<Res>> pending = new ConcurrentHashMap<>();
 
-    private final CorrelationStrategy<Key, Req, Res> correlationStrategy;
-
-    public ExtractingResponseFutureRegistry(CorrelationStrategy<Key, Req, Res> correlationStrategy) {
-        this.correlationStrategy = correlationStrategy;
-    }
-
     // ===== Sender side =====
     @Override
-    public CompletableFuture<Res> registerRequest(Req request) {
-        Key key = correlationStrategy.fromRequest(request);
-        if (key == null) {
-            throw new IllegalArgumentException("Cannot extract correlation key from request");
-        }
+    public CompletableFuture<Res> registerRequest(Key key) {
         return pending.computeIfAbsent(key, _ -> new CompletableFuture<>());
     }
 
     @Override
-    public void failRequest(Req request, RpcException exception) {
-        Key key = correlationStrategy.fromRequest(request);
-        if (key != null) {
-            failByKey(key, exception);
-        }
+    public void failRequest(Key key, RpcException exception) {
+        failByKey(key, exception);
     }
 
     // ===== Inbound side =====
     @Override
-    public void completeFromResponse(Res response) {
-        Key key = correlationStrategy.fromResponse(response);
-        if (key != null) {
-            completeByKey(key, response);
-        }
+    public void completeFromResponse(Key key, Res response) {
+        completeByKey(key, response);
     }
 
     @Override
-    public void failFromResponse(Res response, RpcException exception) {
-        Key key = correlationStrategy.fromResponse(response);
-        if (key != null) {
-            failByKey(key, exception);
-        }
+    public void failFromResponse(Key key, RpcException exception) {
+        failByKey(key, exception);
     }
 
     // ===== Internal helpers =====

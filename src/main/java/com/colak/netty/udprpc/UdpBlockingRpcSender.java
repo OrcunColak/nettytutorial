@@ -4,6 +4,7 @@ import com.colak.netty.NettyManager;
 import com.colak.netty.udprpc.exception.RpcException;
 import com.colak.netty.udprpc.exception.RpcTimeoutException;
 import com.colak.netty.udprpc.exception.RpcTransportException;
+import com.colak.netty.udprpc.response.CorrelationStrategy;
 import com.colak.netty.udprpc.response.ExtractingResponseFutureRegistry;
 import lombok.RequiredArgsConstructor;
 
@@ -15,11 +16,13 @@ import java.util.concurrent.TimeoutException;
 @RequiredArgsConstructor
 public final class UdpBlockingRpcSender<Key, Req, Res> {
     private final NettyManager nettyManager;
-    private final ExtractingResponseFutureRegistry<Key, Req, Res> registry;
+    private final ExtractingResponseFutureRegistry<Key, Res> registry;
+    private final CorrelationStrategy<Key, Req, Res> correlationStrategy;
 
     public Res sendAndAwait(String channelId, Req request, BlockingRpcParameters params)
             throws RpcException, InterruptedException {
-        CompletableFuture<Res> future = registry.registerRequest(request);
+        Key key = correlationStrategy.fromRequest(request);
+        CompletableFuture<Res> future = registry.registerRequest(key);
         long timeoutMillis = params.timeoutMillis();
         try {
             for (int attempt = 0; attempt < params.maxAttempts(); attempt++) {
@@ -32,17 +35,17 @@ public final class UdpBlockingRpcSender<Key, Req, Res> {
             }
             RpcTimeoutException ex = new RpcTimeoutException("No response after " + params.maxAttempts() + " attempts");
 
-            registry.failRequest(request, ex);
+            registry.failRequest(key, ex);
             throw ex;
         } catch (InterruptedException e) {
             RpcTransportException ex = new RpcTransportException("RPC interrupted", e);
 
-            registry.failRequest(request, ex);
+            registry.failRequest(key, ex);
             Thread.currentThread().interrupt();
             throw e;
         } catch (ExecutionException e) {
             RpcException ex = mapExecutionException(e);
-            registry.failRequest(request, ex);
+            registry.failRequest(key, ex);
             throw ex;
         }
     }

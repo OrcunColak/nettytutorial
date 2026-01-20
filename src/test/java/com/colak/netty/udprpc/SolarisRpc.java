@@ -16,8 +16,9 @@ public class SolarisRpc {
     static void main() {
         NettyManager nettyManager = NettyManager.newSingleThreadWorker();
         String channelId = "solaris-channel";
-        var extractingRegistry = getRegistry();
-        var handler = new SolarisRpcInboundHandler(extractingRegistry);
+        var registry = getRegistry();
+        var correlationStrategy = correlationStrategy();
+        var handler = new SolarisRpcInboundHandler(registry, correlationStrategy);
 
         UdpServerParameters udpServer = UdpServerParameters
                 .builder()
@@ -29,7 +30,7 @@ public class SolarisRpc {
 
         nettyManager.addUdpServer(udpServer);
 
-        var udpBlockingRpcSender = new UdpBlockingRpcSender<>(nettyManager, extractingRegistry);
+        var udpBlockingRpcSender = new UdpBlockingRpcSender<>(nettyManager, registry, correlationStrategy);
         SolarisMessage message = new SolarisMessage((short) 1, (short) 2);
         message.setMessageNo((short) 3);
         message.setErrorNo((short) 0);
@@ -44,13 +45,11 @@ public class SolarisRpc {
         nettyManager.shutdown();
     }
 
-    private static ExtractingResponseFutureRegistry<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> getRegistry() {
-        CorrelationStrategy<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> keyExtractor = keyExtractor();
-
-        return new ExtractingResponseFutureRegistry<>(keyExtractor);
+    private static ExtractingResponseFutureRegistry<SolarisKey, UdpEnvelope<SolarisMessage>> getRegistry() {
+        return new ExtractingResponseFutureRegistry<>();
     }
 
-    private static CorrelationStrategy<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> keyExtractor() {
+    private static CorrelationStrategy<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> correlationStrategy() {
         return new CorrelationStrategy<>() {
             @Override
             public SolarisKey fromRequest(UdpEnvelope<SolarisMessage> envelope) {
