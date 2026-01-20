@@ -10,7 +10,6 @@ import java.util.List;
 
 @Getter
 public final class UdpServerParameters {
-
     private final String channelId;
     private final int port;
 
@@ -35,8 +34,17 @@ public final class UdpServerParameters {
         return new Builder();
     }
 
-    public static final class Builder {
+    // Add this method to get a builder pre-populated with current values
+    public Builder toBuilder() {
+        return new Builder()
+                .channelId(this.channelId)
+                .port(this.port)
+                .inboundHandler(this.inboundHandler)
+                .inboundDecoders(this.inboundDecoders)
+                .outboundEncoders(this.outboundEncoders);
+    }
 
+    public static final class Builder {
         private String channelId;
         private Integer port;
 
@@ -62,6 +70,12 @@ public final class UdpServerParameters {
             return this;
         }
 
+        public Builder inboundDecoders(List<ChannelInboundHandler> handlers) {
+            this.inboundDecoders.clear();
+            this.inboundDecoders.addAll(handlers);
+            return this;
+        }
+
         /** Required final inbound handler */
         public Builder inboundHandler(ChannelInboundHandler handler) {
             this.inboundHandler = handler;
@@ -73,6 +87,13 @@ public final class UdpServerParameters {
             this.outboundEncoders.add(handler);
             return this;
         }
+
+        public Builder outboundEncoders(List<ChannelOutboundHandler> handlers) {
+            this.outboundEncoders.clear();
+            this.outboundEncoders.addAll(handlers);
+            return this;
+        }
+
 
         public UdpServerParameters build() {
             if (channelId == null || channelId.isBlank()) {
@@ -88,4 +109,3 @@ public final class UdpServerParameters {
         }
     }
 }
-

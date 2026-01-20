@@ -1,19 +1,18 @@
 package com.colak.netty.udprpc;
 
 import com.colak.netty.UdpEnvelope;
-import com.colak.netty.udprpc.handler.AbstractRpcResponseInboundHandler;
-import com.colak.netty.udprpc.response.CorrelationStrategy;
-import com.colak.netty.udprpc.response.ResponseFutureRegistry;
+import com.colak.netty.udprpc.exception.RpcPeerException;
+import com.colak.netty.udprpc.handler.RpcResponseHandler;
 
-public class SolarisRpcInboundHandler extends AbstractRpcResponseInboundHandler<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> {
+public class SolarisRpcInboundHandler implements RpcResponseHandler<SolarisKey, UdpEnvelope<SolarisMessage>,UdpEnvelope<SolarisMessage>> {
 
-    protected SolarisRpcInboundHandler(ResponseFutureRegistry<SolarisKey, UdpEnvelope<SolarisMessage>> registry,
-                                       CorrelationStrategy<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> correlationStrategy) {
-        super(registry, correlationStrategy);
+    @Override
+    public boolean isErrorResponse(UdpEnvelope<SolarisMessage> envelope) {
+        return false;
     }
 
     @Override
-    protected boolean isErrorResponse(UdpEnvelope<SolarisMessage> envelope) {
-        return false;
+    public RpcPeerException toPeerException(UdpEnvelope<SolarisMessage> envelope) {
+        return null;
     }
 }

@@ -14,12 +14,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 @RequiredArgsConstructor
-public final class UdpBlockingRpcSender<Key, Req, Res> {
+public final class UdpRpcClient<Key, Req, Res> {
     private final NettyManager nettyManager;
+    private final String channelId;
     private final CorrelationResponseRegistry<Key, Res> registry;
     private final CorrelationStrategy<Key, Req, Res> correlationStrategy;
 
-    public Res sendAndAwait(String channelId, Req request, BlockingRpcParameters params)
+    public Res sendAndAwait(Req request, BlockingRpcParameters params)
             throws RpcException, InterruptedException {
         Key key = correlationStrategy.fromRequest(request);
         CompletableFuture<Res> future = registry.registerRequest(key);
