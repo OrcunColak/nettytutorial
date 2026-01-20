@@ -8,9 +8,6 @@ import java.util.concurrent.ConcurrentMap;
 
 /// Key - correlation key
 /// Res - response
-// Key - correlation key
-
-/// Res - response
 public final class ExtractingResponseFutureRegistry<Key, Res>
         implements ResponseFutureRegistry<Key, Res> {
 
