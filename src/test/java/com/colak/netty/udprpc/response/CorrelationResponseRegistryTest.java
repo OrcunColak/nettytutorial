@@ -31,7 +31,7 @@ class CorrelationResponseRegistryTest {
         assertThrows(TimeoutException.class, () -> future.get(50, TimeUnit.MILLISECONDS));
     }
 
-    private CorrelationResponseRegistry<SolarisKey, UdpEnvelope<SolarisMessage>> createRegistry() {
+    private CorrelationResponseRegistry<SolarisKey> createRegistry() {
         return new CorrelationResponseRegistry<>();
     }
 

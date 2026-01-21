@@ -1,9 +1,9 @@
 package com.colak.netty.udprpc.response;
 
-public interface CorrelationStrategy<CorrelationId, Request, Response> {
+public interface CorrelationStrategy<Key, Req, Res> {
 
-    CorrelationId fromRequest(Request request);
+    Key fromRequest(Req request);
 
-    CorrelationId fromResponse(Response response);
+    Key fromResponse(Res response);
 }
 

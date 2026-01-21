@@ -2,12 +2,13 @@ package com.colak.netty.udprpc;
 
 import com.colak.netty.NettyManager;
 import com.colak.netty.UdpEnvelope;
+import com.colak.netty.udpparams.UdpServerParameters;
 import com.colak.netty.udprpc.exception.RpcException;
+import com.colak.netty.udprpc.response.CorrelationResponseRegistry;
 import com.colak.netty.udprpc.response.CorrelationStrategy;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
-import java.time.Duration;
 
 @Slf4j
 public class SolarisRpc {
@@ -15,30 +16,24 @@ public class SolarisRpc {
     static void main() {
         NettyManager nettyManager = NettyManager.newSingleThreadWorker();
         String channelId = "solaris-channel";
-        // var registry = getRegistry();
+        var registry = getRegistry();
         var correlationStrategy = correlationStrategy();
-        var handler = new SolarisRpcInboundHandler();
+        var handler = new SolarisRpcInboundHandler(registry, correlationStrategy);
+        UdpServerParameters parameters = UdpServerParameters
+                .builder()
+                .channelId(channelId)
+                .port(12345)
+                .inboundHandler(handler)
+                .addOutboundEncoder(new SolarisEncoder())
+                .build();
+        nettyManager.addUdpServer(parameters);
 
-        // UdpServerParameters udpServer = UdpServerParameters
-        //         .builder()
-        //         .channelId(channelId)
-        //         .port(12345)
-        //         .addOutboundEncoder(new SolarisEncoder())
-        //         .build();
-        //
-        // nettyManager.addUdpServer(udpServer);
-
-        SimpleRpcClient<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> rpcClient =
-                UdpRpcClientBuilder.<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>>create()
-
-                        .withNettyManager(nettyManager)
-                        .withChannel(channelId, 12345)
-                        .addOutboundEncoder(new SolarisEncoder())
-                        .withCorrelationStrategy(correlationStrategy)
-                        .withResponseHandler(handler)
-                        .withTimeout(Duration.ofSeconds(4))
-                        .withMaxAttempts(2)
-                        .build();
+        var rpcClient = UdpRpcClient.<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>>builder()
+                .nettyManager(nettyManager)
+                .channelId(channelId)
+                .registry(registry)
+                .correlationStrategy(correlationStrategy)
+                .build();
 
         SolarisMessage message = new SolarisMessage((short) 1, (short) 2);
         message.setMessageNo((short) 3);
@@ -46,17 +41,16 @@ public class SolarisRpc {
 
         try {
             UdpEnvelope<SolarisMessage> envelope = new UdpEnvelope<>(message, new InetSocketAddress("localhost", 54321));
-            UdpEnvelope<SolarisMessage> solarisMessage = rpcClient.send(envelope);
-            log.info("SolarisMessage {}", solarisMessage);
+            rpcClient.call(envelope, BlockingRpcParameters.defaults());
         } catch (RpcException | InterruptedException rpcException) {
-            log.error("Exception from sendAndAwait", rpcException);
+            log.error("Exception from call", rpcException);
         }
         nettyManager.shutdown();
     }
 
-    // private static CorrelationResponseRegistry<SolarisKey, UdpEnvelope<SolarisMessage>> getRegistry() {
-    //     return new CorrelationResponseRegistry<>();
-    // }
+    private static CorrelationResponseRegistry<SolarisKey> getRegistry() {
+        return new CorrelationResponseRegistry<>();
+    }
 
     private static CorrelationStrategy<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> correlationStrategy() {
         return new CorrelationStrategy<>() {
