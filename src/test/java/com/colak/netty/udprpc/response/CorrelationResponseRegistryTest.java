@@ -17,7 +17,7 @@ class CorrelationResponseRegistryTest {
     @Test
     void shouldTimeoutWhenNoResponseArrives() {
         var registry = createRegistry();
-        var correlationStrategy = createCorrelationStrategy();
+        var correlationStrategy = correlationStrategy();
 
         SolarisMessage request = new SolarisMessage((short) 1, (short) 2);
         request.setMessageNo((short) 3);
@@ -25,34 +25,40 @@ class CorrelationResponseRegistryTest {
 
         UdpEnvelope<SolarisMessage> requestEnvelope = new UdpEnvelope<>(request, new InetSocketAddress("localhost", 1111));
 
-        SolarisKey solarisKey = correlationStrategy.fromRequest(requestEnvelope);
+        SolarisKey solarisKey = (SolarisKey) correlationStrategy.fromRequest(requestEnvelope);
         CompletableFuture<UdpEnvelope<SolarisMessage>> future = registry.registerRequest(solarisKey);
 
         assertThrows(TimeoutException.class, () -> future.get(50, TimeUnit.MILLISECONDS));
     }
 
-    private CorrelationResponseRegistry<SolarisKey> createRegistry() {
-        return new CorrelationResponseRegistry<>();
+    private CorrelationResponseRegistry createRegistry() {
+        return new CorrelationResponseRegistry();
     }
 
-    private CorrelationStrategy<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> createCorrelationStrategy() {
-        return new CorrelationStrategy<>() {
+    private static CorrelationStrategy correlationStrategy() {
+        return new CorrelationStrategy() {
             @Override
-            public SolarisKey fromRequest(UdpEnvelope<SolarisMessage> envelope) {
-                return toKey(envelope.getPayload());
+            public SolarisKey fromRequest(Object request) {
+                if (request instanceof UdpEnvelope<?> envelope) {
+                    if (envelope.getPayload() instanceof SolarisMessage solarisMessage) {
+                        return toSolarisKey(solarisMessage);
+                    }
+                }
+                throw new IllegalArgumentException("Invalid request");
             }
 
             @Override
-            public SolarisKey fromResponse(UdpEnvelope<SolarisMessage> envelope) {
-                return toKey(envelope.getPayload());
+            public SolarisKey fromResponse(Object response) {
+                if (response instanceof UdpEnvelope<?> envelope) {
+                    if (envelope.getPayload() instanceof SolarisMessage solarisMessage) {
+                        return toSolarisKey(solarisMessage);
+                    }
+                }
+                throw new IllegalArgumentException("Invalid request");
             }
 
-            private SolarisKey toKey(SolarisMessage message) {
-                return new SolarisKey(
-                        message.getProtocolNo(),
-                        message.getMessageNo(),
-                        message.getErrorNo()
-                );
+            private SolarisKey toSolarisKey(SolarisMessage message) {
+                return new SolarisKey(message.getProtocolNo(), message.getMessageNo(), message.getErrorNo());
             }
         };
     }

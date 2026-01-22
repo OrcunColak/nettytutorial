@@ -1,31 +1,34 @@
 package com.colak.netty.udprpc;
 
-import com.colak.netty.UdpEnvelope;
 import com.colak.netty.udprpc.exception.RpcPeerException;
-import com.colak.netty.udprpc.handler.AbstractRpcResponseInboundHandler;
+import com.colak.netty.udprpc.handler.RpcResponseInboundHandler;
 import com.colak.netty.udprpc.response.CorrelationStrategy;
 import com.colak.netty.udprpc.response.ResponseFutureRegistry;
+import io.netty.channel.ChannelHandlerContext;
 
-public class SolarisRpcInboundHandler extends
-        AbstractRpcResponseInboundHandler<SolarisKey, UdpEnvelope<SolarisMessage>,UdpEnvelope<SolarisMessage>> {
+public class SolarisRpcInboundHandler extends RpcResponseInboundHandler {
 
-    protected SolarisRpcInboundHandler(ResponseFutureRegistry<SolarisKey> registry,
-                                       CorrelationStrategy<SolarisKey, UdpEnvelope<SolarisMessage>, UdpEnvelope<SolarisMessage>> correlationStrategy) {
+    protected SolarisRpcInboundHandler(ResponseFutureRegistry registry,
+                                       CorrelationStrategy correlationStrategy) {
         super(registry, correlationStrategy);
     }
 
     @Override
-    public boolean isErrorResponse(UdpEnvelope<SolarisMessage> envelope) {
+    public boolean isErrorResponse(Object response) {
         return false;
     }
 
     @Override
-    protected Object toCompletionValue(UdpEnvelope<SolarisMessage> response) {
+    protected Object toCompletionValue(Object response) {
         return null;
     }
 
     @Override
-    public RpcPeerException toPeerException(UdpEnvelope<SolarisMessage> envelope) {
+    public RpcPeerException toPeerException(Object response) {
         return null;
+    }
+
+    protected void channelRead0(ChannelHandlerContext ctx, Object response) {
+        System.out.println("response = " + response);
     }
 }

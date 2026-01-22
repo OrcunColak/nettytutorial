@@ -2,7 +2,7 @@ package com.colak.netty.udprpc.callexecutor;
 
 import com.colak.netty.udprpc.exception.RpcException;
 
-public interface RpcCallExecutor<Req> {
+public interface RpcCallExecutor {
 
-    Object executeCall(Req request, RpcCallParameters params) throws RpcException,InterruptedException;
+    Object executeCall(Object request, RpcCallParameters params) throws RpcException,InterruptedException;
 }

@@ -14,15 +14,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 @RequiredArgsConstructor
-public final class DefaultRpcCallExecutor<Key, Req, Res> implements RpcCallExecutor<Req> {
+public final class DefaultRpcCallExecutor implements RpcCallExecutor {
     private final NettyManager nettyManager;
     private final String channelId;
-    private final CorrelationResponseRegistry<Key> registry;
-    private final CorrelationStrategy<Key, Req, Res> correlationStrategy;
+    private final CorrelationResponseRegistry registry;
+    private final CorrelationStrategy correlationStrategy;
 
     @Override
-    public Object executeCall(Req request, RpcCallParameters params) throws RpcException, InterruptedException {
-        Key key = correlationStrategy.fromRequest(request);
+    public Object executeCall(Object request, RpcCallParameters params) throws RpcException, InterruptedException {
+        Object key = correlationStrategy.fromRequest(request);
         CompletableFuture<?> future = registry.registerRequest(key);
         try {
             int attemptLimit = params.attemptLimit();

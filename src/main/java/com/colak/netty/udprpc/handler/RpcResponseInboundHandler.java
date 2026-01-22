@@ -6,36 +6,41 @@ import com.colak.netty.udprpc.response.CorrelationStrategy;
 import com.colak.netty.udprpc.response.ResponseFutureRegistry;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.util.ReferenceCountUtil;
 
-public abstract class AbstractRpcResponseInboundHandler<Key, Req, Res>
-        extends SimpleChannelInboundHandler<Res> {
-    private final ResponseFutureRegistry<Key> registry;
-    private final CorrelationStrategy<Key, Req, Res> correlationStrategy;
+public class RpcResponseInboundHandler
+        extends SimpleChannelInboundHandler<Object> {
+    private final ResponseFutureRegistry registry;
+    private final CorrelationStrategy correlationStrategy;
 
-    protected AbstractRpcResponseInboundHandler(
-            ResponseFutureRegistry<Key> registry,
-            CorrelationStrategy<Key, Req, Res> correlationStrategy) {
+    public RpcResponseInboundHandler(
+            ResponseFutureRegistry registry,
+            CorrelationStrategy correlationStrategy) {
         this.registry = registry;
         this.correlationStrategy = correlationStrategy;
     }
 
-    public ResponseFutureRegistry<Key> getRegistry() {
+    public ResponseFutureRegistry getRegistry() {
         return registry;
     }
 
     // === Extension points ===
-    protected abstract boolean isErrorResponse(Res response);
+    protected boolean isErrorResponse(Object response) {
+        return false;
+    }
 
-    protected abstract Object toCompletionValue(Res response);
+    protected Object toCompletionValue(Object response) {
+        return response;
+    }
 
-    protected RpcPeerException toPeerException(Res response) {
+    protected RpcPeerException toPeerException(Object response) {
         return new RpcPeerException("Peer returned error", response);
     }
 
     // === Core logic ===
     @Override
-    protected final void channelRead0(ChannelHandlerContext ctx, Res response) {
-        Key key = correlationStrategy.fromResponse(response);
+    protected void channelRead0(ChannelHandlerContext ctx, Object response) {
+        Object key = correlationStrategy.fromResponse(response);
         if (isErrorResponse(response)) {
             RpcException rpcPeerException = toPeerException(response);
             registry.failFromResponse(key, rpcPeerException);
@@ -43,5 +48,6 @@ public abstract class AbstractRpcResponseInboundHandler<Key, Req, Res>
             Object completionValue = toCompletionValue(response);
             registry.completeFromResponse(key, completionValue);
         }
+        ctx.fireChannelRead(ReferenceCountUtil.retain(response));
     }
 }

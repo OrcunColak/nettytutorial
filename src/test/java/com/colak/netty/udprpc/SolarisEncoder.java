@@ -13,7 +13,7 @@ public class SolarisEncoder extends MessageToMessageEncoder<UdpEnvelope<SolarisM
     @Override
     protected void encode(ChannelHandlerContext ctx, UdpEnvelope<SolarisMessage> envelope, List<Object> out) {
         // 1. Serialize
-        byte[] bytes = new  byte[1024];
+        byte[] bytes = new  byte[10];
 
         // 2. Allocate ByteBuf
         ByteBuf buf = ctx.alloc().buffer(bytes.length);
