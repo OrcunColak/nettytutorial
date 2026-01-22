@@ -1,31 +1,31 @@
 package com.colak.netty.udprpc;
 
 import com.colak.netty.NettyManager;
+import com.colak.netty.udprpc.callexecutor.DefaultRpcCallExecutor;
+import com.colak.netty.udprpc.callexecutor.RpcCallExecutor;
+import com.colak.netty.udprpc.callexecutor.RpcCallParameters;
 import com.colak.netty.udprpc.exception.RpcException;
-import com.colak.netty.udprpc.exception.RpcTimeoutException;
 import com.colak.netty.udprpc.exception.RpcTransportException;
+import com.colak.netty.udprpc.fireexecutor.DefaultFireAndForgetExecutor;
+import com.colak.netty.udprpc.fireexecutor.FireAndForgetExecutor;
 import com.colak.netty.udprpc.response.CorrelationResponseRegistry;
 import com.colak.netty.udprpc.response.CorrelationStrategy;
 import lombok.RequiredArgsConstructor;
 
+import java.time.Duration;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 @RequiredArgsConstructor
 public final class UdpRpcClient<Key, Req, Res> {
-    private final NettyManager nettyManager;
-    private final String channelId;
-    private final CorrelationResponseRegistry<Key> registry;
-    private final CorrelationStrategy<Key, Req, Res> correlationStrategy;
+    private final int maxAttempts;
+    private final RpcCallExecutor<Req> rpcExecutor;
+    private final FireAndForgetExecutor<Req> fireExecutor;
 
     private UdpRpcClient(Builder<Key, Req, Res> builder) {
-        this.nettyManager = builder.nettyManager;
-        this.channelId = builder.channelId;
-        this.registry = builder.registry;
-        this.correlationStrategy = builder.correlationStrategy;
+        this.maxAttempts = builder.maxAttempts;
+        this.rpcExecutor = new DefaultRpcCallExecutor<>(builder.nettyManager, builder.channelId, builder.registry,
+                builder.correlationStrategy);
+        this.fireExecutor = new DefaultFireAndForgetExecutor<>(builder.nettyManager, builder.channelId);
     }
 
     public static <Key, Req, Res> Builder<Key, Req, Res> builder() {
@@ -37,7 +37,10 @@ public final class UdpRpcClient<Key, Req, Res> {
         private String channelId;
         private CorrelationResponseRegistry<Key> registry;
         private CorrelationStrategy<Key, Req, Res> correlationStrategy;
+        private int maxAttempts = 3; // default
 
+        private Builder() {
+        }
 
         public Builder<Key, Req, Res> nettyManager(NettyManager nettyManager) {
             this.nettyManager = nettyManager;
@@ -59,56 +62,55 @@ public final class UdpRpcClient<Key, Req, Res> {
             return this;
         }
 
+        public Builder<Key, Req, Res> maxAttempts(int maxAttempts) {
+            this.maxAttempts = maxAttempts;
+            return this;
+        }
+
         public UdpRpcClient<Key, Req, Res> build() {
             Objects.requireNonNull(nettyManager, "nettyManager is required");
             Objects.requireNonNull(channelId, "channelId is required");
             Objects.requireNonNull(registry, "registry is required");
             Objects.requireNonNull(correlationStrategy, "correlationStrategy is required");
-            return new UdpRpcClient<>(nettyManager, channelId, registry, correlationStrategy);
+            return new UdpRpcClient<>(this);
         }
     }
 
-    public <T> T call(Req request, BlockingRpcParameters params, Class<T> expectedType)
+    /// Executes an RPC call and waits for a typed response
+    public <T> T call(Req request, Duration timeout, Class<T> expectedType)
             throws RpcException, InterruptedException {
-        Object result = executeCall(request, params);
+        RpcCallParameters callParams = RpcCallParameters.of(maxAttempts, timeout);
+        Object result = rpcExecutor.executeCall(request, callParams);
         return castResult(result, expectedType);
     }
 
-    public void call(Req request, BlockingRpcParameters params)
+    /// Executes an RPC call without expecting a response type
+    public void call(Req request, Duration timeout)
             throws RpcException, InterruptedException {
-        executeCall(request, params);
+        RpcCallParameters callParams = RpcCallParameters.of(maxAttempts, timeout);
+        rpcExecutor.executeCall(request, callParams);
         // Ignore the result
     }
 
-    public Object executeCall(Req request, BlockingRpcParameters params)
+    /// Executes an RPC call with custom retry and timeout parameters and waits for a typed response
+    public <T> T call(Req request, BlockingRpcParameters params, Class<T> expectedType)
             throws RpcException, InterruptedException {
-        Key key = correlationStrategy.fromRequest(request);
-        CompletableFuture<?> future = registry.registerRequest(key);
-        long timeoutMillis = params.timeoutMillis();
-        try {
-            for (int attempt = 0; attempt < params.maxAttempts(); attempt++) {
-                nettyManager.sendUdpMessage(channelId, request);
-                try {
-                    return future.get(timeoutMillis, TimeUnit.MILLISECONDS);
-                } catch (TimeoutException ignored) {
-                    // retry immediately
-                }
-            }
-            RpcTimeoutException ex = new RpcTimeoutException("No response after " + params.maxAttempts() + " attempts");
+        RpcCallParameters callParams = RpcCallParameters.of(params.maxAttempts(), params.timeout());
+        Object result = rpcExecutor.executeCall(request, callParams);
+        return castResult(result, expectedType);
+    }
 
-            registry.failRequest(key, ex);
-            throw ex;
-        } catch (InterruptedException e) {
-            RpcTransportException ex = new RpcTransportException("RPC interrupted", e);
+    /// Executes an RPC call with custom retry and timeout parameters without expecting a response type
+    public void call(Req request, BlockingRpcParameters params)
+            throws RpcException, InterruptedException {
+        RpcCallParameters callParams = RpcCallParameters.of(params.maxAttempts(), params.timeout());
+        rpcExecutor.executeCall(request, callParams);
+        // Ignore the result
+    }
 
-            registry.failRequest(key, ex);
-            Thread.currentThread().interrupt();
-            throw e;
-        } catch (ExecutionException e) {
-            RpcException ex = mapExecutionException(e);
-            registry.failRequest(key, ex);
-            throw ex;
-        }
+    /// Sends a request without waiting for a response (fire-and-forget)
+    public void fire(Req request) {
+        fireExecutor.fire(request);
     }
 
     private <T> T castResult(Object result, Class<T> expectedType) throws RpcTransportException {
@@ -120,13 +122,5 @@ public final class UdpRpcClient<Key, Req, Res> {
             throw new RpcTransportException(message);
         }
         return expectedType.cast(result);
-    }
-
-    private RpcException mapExecutionException(ExecutionException e) {
-        Throwable cause = e.getCause();
-        if (cause instanceof RpcException rpc) {
-            return rpc;
-        }
-        return new RpcTransportException("RPC failed due to transport error", cause);
     }
 }
