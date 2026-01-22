@@ -12,7 +12,7 @@
         <java.version>25</java.version>
         <maven.compiler.release>25</maven.compiler.release>
 
-        <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
 
         <lombok.version>1.18.42</lombok.version>
         <netty.version>4.2.9.Final</netty.version>
