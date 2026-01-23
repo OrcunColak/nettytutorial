@@ -7,31 +7,12 @@ import com.colak.netty.udprpc.response.ResponseFutureRegistry;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.ReferenceCountUtil;
+import lombok.RequiredArgsConstructor;
 
-public class RpcResponseInboundHandler
-        extends SimpleChannelInboundHandler<Object> {
+@RequiredArgsConstructor
+public class RpcResponseInboundHandler extends SimpleChannelInboundHandler<Object> {
     private final ResponseFutureRegistry registry;
     private final CorrelationStrategy correlationStrategy;
-
-    public RpcResponseInboundHandler(
-            ResponseFutureRegistry registry,
-            CorrelationStrategy correlationStrategy) {
-        this.registry = registry;
-        this.correlationStrategy = correlationStrategy;
-    }
-
-    public ResponseFutureRegistry getRegistry() {
-        return registry;
-    }
-
-    // === Extension points ===
-    protected boolean isErrorResponse(Object response) {
-        return false;
-    }
-
-    protected Object toCompletionValue(Object response) {
-        return response;
-    }
 
     protected RpcPeerException toPeerException(Object response) {
         return new RpcPeerException("Peer returned error", response);
@@ -41,13 +22,16 @@ public class RpcResponseInboundHandler
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object response) {
         Object key = correlationStrategy.fromResponse(response);
-        if (isErrorResponse(response)) {
-            RpcException rpcPeerException = toPeerException(response);
-            registry.failFromResponse(key, rpcPeerException);
-        } else {
-            Object completionValue = toCompletionValue(response);
-            registry.completeFromResponse(key, completionValue);
+        if(key != null) {
+            if (correlationStrategy.isErrorResponse(response)) {
+                RpcException rpcPeerException = toPeerException(response);
+                registry.failFromResponse(key, rpcPeerException);
+            }   else {
+                Object completionValue = correlationStrategy.toCompletionValue(response);
+                registry.completeFromResponse(key, completionValue);
+            }
         }
+        // Fire to next handler
         ctx.fireChannelRead(ReferenceCountUtil.retain(response));
     }
 }

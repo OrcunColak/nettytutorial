@@ -26,7 +26,7 @@ class CorrelationResponseRegistryTest {
         UdpEnvelope<SolarisMessage> requestEnvelope = new UdpEnvelope<>(request, new InetSocketAddress("localhost", 1111));
 
         SolarisKey solarisKey = (SolarisKey) correlationStrategy.fromRequest(requestEnvelope);
-        CompletableFuture<UdpEnvelope<SolarisMessage>> future = registry.registerRequest(solarisKey);
+        CompletableFuture<?> future = registry.registerRequest(solarisKey);
 
         assertThrows(TimeoutException.class, () -> future.get(50, TimeUnit.MILLISECONDS));
     }

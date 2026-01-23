@@ -38,7 +38,7 @@ public class EchoUdpServer {
         UdpServerParameters parameters = UdpServerParameters.builder()
                 .channelId(channelId)
                 .port(port)
-                .inboundHandler(echoHandler)
+                .addInboundHandler(echoHandler)
                 .build();
         boolean result = nettyManager.addUdpServer(parameters);
         assertTrue(result, "Echo server did not start successfully");

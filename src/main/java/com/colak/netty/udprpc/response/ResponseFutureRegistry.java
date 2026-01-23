@@ -7,12 +7,12 @@ import java.util.concurrent.CompletableFuture;
 public interface ResponseFutureRegistry {
 
     // === Sender side ===
-    <T> CompletableFuture<T> registerRequest(Object key);
+    CompletableFuture<Object> registerRequest(Object key);
 
     void failRequest(Object key, RpcException exception);
 
     // === Inbound side ===
-    <T> void completeFromResponse(Object key, T response);
+    void completeFromResponse(Object key, Object response);
 
     void failFromResponse(Object key, RpcException exception);
 }

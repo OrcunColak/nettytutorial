@@ -13,20 +13,17 @@ public final class UdpServerParameters {
     private final String channelId;
     private final int port;
 
-    /** Optional inbound transformers (decoders) */
     private final List<ChannelInboundHandler> inboundDecoders;
 
-    /** Required terminal inbound handler */
-    private final ChannelInboundHandler inboundHandler;
+    private final List<ChannelInboundHandler> inboundHandlers;
 
-    /** Optional outbound transformers (encoders) */
     private final List<ChannelOutboundHandler> outboundEncoders;
 
     private UdpServerParameters(Builder builder) {
         this.channelId = builder.channelId;
         this.port = builder.port;
         this.inboundDecoders = List.copyOf(builder.inboundDecoders);
-        this.inboundHandler = builder.inboundHandler;
+        this.inboundHandlers = builder.inboundHandlers;
         this.outboundEncoders = List.copyOf(builder.outboundEncoders);
     }
 
@@ -34,25 +31,16 @@ public final class UdpServerParameters {
         return new Builder();
     }
 
-    // Add this method to get a builder pre-populated with current values
-    public Builder toBuilder() {
-        return new Builder()
-                .channelId(this.channelId)
-                .port(this.port)
-                .inboundHandler(this.inboundHandler)
-                .inboundDecoders(this.inboundDecoders)
-                .outboundEncoders(this.outboundEncoders);
-    }
-
     public static final class Builder {
         private String channelId;
         private Integer port;
 
         private final List<ChannelInboundHandler> inboundDecoders = new ArrayList<>();
-        private ChannelInboundHandler inboundHandler;
+        private final List<ChannelInboundHandler> inboundHandlers = new ArrayList<>();
         private final List<ChannelOutboundHandler> outboundEncoders = new ArrayList<>();
 
-        private Builder() {}
+        private Builder() {
+        }
 
         public Builder channelId(String channelId) {
             this.channelId = channelId;
@@ -64,32 +52,33 @@ public final class UdpServerParameters {
             return this;
         }
 
-        /** Optional inbound transformers (decoders) */
-        public Builder addInboundDecoder(ChannelInboundHandler handler) {
-            this.inboundDecoders.add(handler);
+        public Builder addInboundDecoder(ChannelInboundHandler decoder) {
+            this.inboundDecoders.add(decoder);
             return this;
         }
 
-        public Builder inboundDecoders(List<ChannelInboundHandler> handlers) {
+        public Builder addInboundDecoders(List<ChannelInboundHandler> decoders) {
             this.inboundDecoders.clear();
-            this.inboundDecoders.addAll(handlers);
+            this.inboundDecoders.addAll(decoders);
             return this;
         }
 
-        /** Required final inbound handler */
-        public Builder inboundHandler(ChannelInboundHandler handler) {
-            this.inboundHandler = handler;
+        public Builder addInboundHandler(ChannelInboundHandler handler) {
+            this.inboundHandlers.add(handler);
             return this;
         }
 
-        /** Optional outbound transformers (encoders) */
+        public Builder addInboundHandlers(List<ChannelInboundHandler> handlers) {
+            this.inboundHandlers.addAll(handlers);
+            return this;
+        }
+
         public Builder addOutboundEncoder(ChannelOutboundHandler handler) {
             this.outboundEncoders.add(handler);
             return this;
         }
 
-        public Builder outboundEncoders(List<ChannelOutboundHandler> handlers) {
-            this.outboundEncoders.clear();
+        public Builder addOutboundEncoders(List<ChannelOutboundHandler> handlers) {
             this.outboundEncoders.addAll(handlers);
             return this;
         }
@@ -102,7 +91,7 @@ public final class UdpServerParameters {
             if (port == null) {
                 throw new IllegalStateException("port must be provided");
             }
-            if (inboundHandler == null) {
+            if (inboundHandlers == null) {
                 throw new IllegalStateException("inboundHandler must be provided");
             }
             return new UdpServerParameters(this);

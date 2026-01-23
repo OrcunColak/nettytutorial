@@ -7,14 +7,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public final class CorrelationResponseRegistry implements ResponseFutureRegistry {
-
-    private final ConcurrentMap<Object, CompletableFuture<?>> pending = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Object, CompletableFuture<Object>> pending = new ConcurrentHashMap<>();
 
     // ===== Sender side =====
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> CompletableFuture<T> registerRequest(Object key) {
-        return (CompletableFuture<T>) pending.computeIfAbsent(key, _ -> new CompletableFuture<>());
+    public CompletableFuture<Object> registerRequest(Object key) {
+        return pending.computeIfAbsent(key, _ -> new CompletableFuture<>());
     }
 
     @Override
@@ -24,7 +22,7 @@ public final class CorrelationResponseRegistry implements ResponseFutureRegistry
 
     // ===== Inbound side =====
     @Override
-    public <T> void completeFromResponse(Object key, T response) {
+    public void completeFromResponse(Object key, Object response) {
         completeByKey(key, response);
     }
 
@@ -34,16 +32,15 @@ public final class CorrelationResponseRegistry implements ResponseFutureRegistry
     }
 
     // ===== Internal helpers =====
-    @SuppressWarnings("unchecked")
-    private <T> void completeByKey(Object key, T response) {
-        CompletableFuture<T> future = (CompletableFuture<T>) pending.remove(key);
+    private void completeByKey(Object key, Object response) {
+        CompletableFuture<Object> future = pending.remove(key);
         if (future != null) {
             future.complete(response);
         }
     }
 
     private void failByKey(Object key, RpcException exception) {
-        CompletableFuture<?> future = pending.remove(key);
+        CompletableFuture<Object> future = pending.remove(key);
         if (future != null) {
             future.completeExceptionally(exception);
         }

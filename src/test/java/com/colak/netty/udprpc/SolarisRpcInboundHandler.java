@@ -14,16 +14,6 @@ public class SolarisRpcInboundHandler extends RpcResponseInboundHandler {
     }
 
     @Override
-    public boolean isErrorResponse(Object response) {
-        return false;
-    }
-
-    @Override
-    protected Object toCompletionValue(Object response) {
-        return null;
-    }
-
-    @Override
     public RpcPeerException toPeerException(Object response) {
         return null;
     }

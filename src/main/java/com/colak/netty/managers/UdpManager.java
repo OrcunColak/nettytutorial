@@ -43,17 +43,19 @@ public class UdpManager {
                         protected void initChannel(NioDatagramChannel ch) {
                             ChannelPipeline pipeline = ch.pipeline();
 
-                            // inbound transformers (head → tail)
-                            for (ChannelInboundHandler handler : parameters.getInboundDecoders()) {
+                            // decoders
+                            for (ChannelInboundHandler decoder : parameters.getInboundDecoders()) {
+                                pipeline.addLast(decoder);
+                            }
+
+                            // handlers
+                            for (ChannelInboundHandler handler : parameters.getInboundHandlers()) {
                                 pipeline.addLast(handler);
                             }
 
-                            // terminal inbound handler
-                            pipeline.addLast(parameters.getInboundHandler());
-
-                            // outbound transformers (tail → head)
-                            for (ChannelOutboundHandler handler : parameters.getOutboundEncoders()) {
-                                pipeline.addLast(handler);
+                            // encoders
+                            for (ChannelOutboundHandler encoder : parameters.getOutboundEncoders()) {
+                                pipeline.addLast(encoder);
                             }
                         }
                     });

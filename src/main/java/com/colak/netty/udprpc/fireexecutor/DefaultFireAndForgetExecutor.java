@@ -6,12 +6,12 @@ import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
 @Slf4j
-public final class DefaultFireAndForgetExecutor<Key, Req, Res> implements FireAndForgetExecutor<Req> {
+public final class DefaultFireAndForgetExecutor implements FireAndForgetExecutor {
     private final NettyManager nettyManager;
     private final String channelId;
 
     @Override
-    public void fire(Req request) {
+    public void fire(Object request) {
         try {
             nettyManager.sendUdpMessage(channelId, request);
         } catch (Exception e) {

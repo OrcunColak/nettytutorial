@@ -1,6 +1,6 @@
 package com.colak.netty.udprpc.fireexecutor;
 
-public interface FireAndForgetExecutor<Req> {
+public interface FireAndForgetExecutor {
 
-    void fire(Req request);
+    void fire(Object request);
 }

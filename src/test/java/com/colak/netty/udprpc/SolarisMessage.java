@@ -8,8 +8,8 @@ import lombok.Setter;
 @Setter
 @RequiredArgsConstructor
 public class SolarisMessage {
-    private final short protocolNo;
-    private final short subType;
-    private short messageNo;
-    private short errorNo;
+    private final int protocolNo;
+    private final int subType;
+    private int messageNo;
+    private int errorNo;
 }
