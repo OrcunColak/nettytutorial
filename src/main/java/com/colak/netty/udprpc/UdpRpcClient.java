@@ -62,7 +62,7 @@ public final class UdpRpcClient {
         return nettyManager.addUdpServer(rpcServerParameters);
     }
 
-    public void close() {
+    public void stop() {
         nettyResource.close();
     }
 
