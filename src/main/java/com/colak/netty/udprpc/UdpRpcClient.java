@@ -9,6 +9,7 @@ import com.colak.netty.udprpc.exception.RpcException;
 import com.colak.netty.udprpc.exception.RpcTransportException;
 import com.colak.netty.udprpc.fireexecutor.DefaultFireAndForgetExecutor;
 import com.colak.netty.udprpc.fireexecutor.FireAndForgetExecutor;
+import com.colak.netty.udprpc.managednetty.Managed;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelOutboundHandler;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 public final class UdpRpcClient {
+    private final Managed<NettyManager> nettyResource;
     private final NettyManager nettyManager;
     private final String channelId;
     private final int port;
@@ -32,7 +34,8 @@ public final class UdpRpcClient {
     private final FireAndForgetExecutor fireExecutor;
 
     UdpRpcClient(UdpRpcClientBuilder builder) {
-        this.nettyManager = builder.nettyManager;
+        this.nettyResource = builder.nettyResource;
+        this.nettyManager = builder.nettyResource.get();
         this.channelId = builder.channelId;
         this.port = builder.port;
         this.inboundDecoders = builder.inboundDecoders;
@@ -41,10 +44,10 @@ public final class UdpRpcClient {
         this.maxAttempts = builder.maxAttempts;
         this.rpcResponseHandler = builder.responseHandler;
 
-        this.rpcExecutor = new DefaultRpcCallExecutor(builder.nettyManager, builder.channelId, builder.registry,
+        this.rpcExecutor = new DefaultRpcCallExecutor(this.nettyManager, builder.channelId, builder.registry,
                 builder.correlationStrategy);
 
-        this.fireExecutor = new DefaultFireAndForgetExecutor(builder.nettyManager, builder.channelId);
+        this.fireExecutor = new DefaultFireAndForgetExecutor(this.nettyManager, builder.channelId);
     }
 
     public boolean start() {
@@ -59,10 +62,13 @@ public final class UdpRpcClient {
         return nettyManager.addUdpServer(rpcServerParameters);
     }
 
+    public void close() {
+        nettyResource.close();
+    }
+
     public static UdpRpcClientBuilder builder() {
         return new UdpRpcClientBuilder();
     }
-
 
     /// Executes an RPC call without expecting a response type
     public void call(Object request, Duration timeout)
@@ -96,7 +102,6 @@ public final class UdpRpcClient {
         Object result = rpcExecutor.executeCall(request, callParams);
         return castResult(result, expectedType);
     }
-
 
     /// Sends a request without waiting for a response (fire-and-forget)
     public void fire(Object request) {

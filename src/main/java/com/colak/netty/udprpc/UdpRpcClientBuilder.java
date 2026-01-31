@@ -2,6 +2,7 @@ package com.colak.netty.udprpc;
 
 import com.colak.netty.NettyManager;
 import com.colak.netty.udprpc.handler.RpcResponseInboundHandler;
+import com.colak.netty.udprpc.managednetty.Managed;
 import com.colak.netty.udprpc.response.CorrelationResponseRegistry;
 import com.colak.netty.udprpc.response.CorrelationStrategy;
 import io.netty.channel.ChannelInboundHandler;
@@ -13,7 +14,7 @@ import java.util.Objects;
 
 public class UdpRpcClientBuilder {
     // Required fields
-    NettyManager nettyManager;
+    Managed<NettyManager> nettyResource;
     String channelId;
     Integer port;
 
@@ -32,7 +33,7 @@ public class UdpRpcClientBuilder {
     }
 
     public UdpRpcClientBuilder nettyManager(NettyManager nettyManager) {
-        this.nettyManager = nettyManager;
+        this.nettyResource = Managed.shared(nettyManager);
         return this;
     }
 
@@ -93,11 +94,12 @@ public class UdpRpcClientBuilder {
 
     public UdpRpcClient build() {
         // Provide defaults where possible
-        if (nettyManager == null) {
-            nettyManager = NettyManager.builder()
+        if (nettyResource == null) {
+            NettyManager nettyManager = NettyManager.builder()
                     .workerThreads(1)
                     .threadNamePrefix(threadNamePrefix)
                     .build();
+            nettyResource = Managed.owned(nettyManager, nettyManager::shutdown);
         }
         if (responseHandler == null) {
             responseHandler = new RpcResponseInboundHandler(registry, correlationStrategy);
@@ -117,5 +119,3 @@ public class UdpRpcClientBuilder {
         Objects.requireNonNull(correlationStrategy, "correlationStrategy must be provided");
     }
 }
-
-
