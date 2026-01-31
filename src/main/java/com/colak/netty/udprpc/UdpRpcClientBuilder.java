@@ -21,10 +21,12 @@ public class UdpRpcClientBuilder {
     final List<ChannelInboundHandler> inboundDecoders = new ArrayList<>();
     final List<ChannelInboundHandler> inboundHandlers = new ArrayList<>();
     final List<ChannelOutboundHandler> outboundEncoders = new ArrayList<>();
+    // responseHandler will be created dynamically after CorrelationStrategy is set
     RpcResponseInboundHandler responseHandler;
-    CorrelationResponseRegistry registry;
+    CorrelationResponseRegistry registry = new CorrelationResponseRegistry();
     CorrelationStrategy correlationStrategy;
-    int maxAttempts = 3; // default
+    int maxAttempts = 3;
+    String threadNamePrefix = "udp-rpc-client-";
 
     UdpRpcClientBuilder() {
     }
@@ -84,14 +86,18 @@ public class UdpRpcClientBuilder {
         return this;
     }
 
+    public UdpRpcClientBuilder threadNamePrefix(String threadNamePrefix) {
+        this.threadNamePrefix = threadNamePrefix;
+        return this;
+    }
+
     public UdpRpcClient build() {
         // Provide defaults where possible
         if (nettyManager == null) {
             nettyManager = NettyManager.builder()
+                    .workerThreads(1)
+                    .threadNamePrefix(threadNamePrefix)
                     .build();
-        }
-        if (registry == null) {
-            registry = new CorrelationResponseRegistry();
         }
         if (responseHandler == null) {
             responseHandler = new RpcResponseInboundHandler(registry, correlationStrategy);
