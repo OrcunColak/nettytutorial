@@ -22,7 +22,8 @@ public class UdpServerTest {
 
     @BeforeAll
     static void setUp() {
-        nettyManager = NettyManager.newSingleThreadWorker();
+        nettyManager = NettyManager.builder()
+                .build();
     }
 
     @AfterAll

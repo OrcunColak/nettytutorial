@@ -17,7 +17,8 @@ import java.time.Duration;
 public class SolarisRpc {
 
     static void main() {
-        NettyManager nettyManager = NettyManager.newSingleThreadWorker();
+        NettyManager nettyManager = NettyManager.builder()
+                .build();
         String channelId = "solaris-channel";
         var correlationStrategy = correlationStrategy();
 
