@@ -11,11 +11,18 @@ import com.colak.netty.udpparams.UdpClientParameters;
 import com.colak.netty.udpparams.UdpServerParameters;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.nio.NioIoHandler;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.Future;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+
 public class NettyManager {
+    // For TCP
     private final EventLoopGroup bossGroup;
+    // Shared between TCP and UDP
     private final EventLoopGroup workerGroup;
 
     private final TimerManager timerManager;
@@ -23,37 +30,30 @@ public class NettyManager {
     private final UdpManager udpManager;
     private final boolean hasTcpSupport;
 
-    private NettyManager(int bossThread, int workerThreads) {
-        this.bossGroup = createEventLoopGroup(bossThread);
+    // Package private constructor for builder
+    NettyManager(NettyManagerBuilder builder) {
+        this.bossGroup = builder.getBossThreads() > 0 ? createEventLoopGroup(builder.getBossThreads(),
+                builder.getThreadNamePrefix() + "-boss") : null;
         this.hasTcpSupport = this.bossGroup != null;
 
-        this.workerGroup = createEventLoopGroup(workerThreads);
+        this.workerGroup = createEventLoopGroup(builder.getWorkerThreads(),
+                builder.getThreadNamePrefix() + "-worker");
 
         this.timerManager = new TimerManager(workerGroup);
         this.tcpManager = new TcpManager(bossGroup, workerGroup);
         this.udpManager = new UdpManager(workerGroup);
     }
 
-    public static NettyManager newSingleThreadWorker() {
-        return new NettyManager(-1, 1);
+    public static NettyManagerBuilder builder() {
+        return new NettyManagerBuilder();
     }
 
-    public static NettyManager newWorker(int workerThreads) {
-        return new NettyManager(-1, workerThreads);
-    }
-
-    public static NettyManager newBossAndWorker(int bossThreads, int workerThreads) {
-        if (bossThreads <= 0) {
-            throw new IllegalArgumentException("bossThreads must be positive for TCP support");
-        }
-        return new NettyManager(bossThreads, workerThreads);
-    }
-
-    private EventLoopGroup createEventLoopGroup(int threads) {
+    private EventLoopGroup createEventLoopGroup(int threads, String threadNamePrefix) {
         if (threads < 0) {
             return null;
         }
-        return new MultiThreadIoEventLoopGroup(threads, NioIoHandler.newFactory());
+        ThreadFactory threadFactory = new DefaultThreadFactory(threadNamePrefix);
+        return new MultiThreadIoEventLoopGroup(threads, threadFactory, NioIoHandler.newFactory());
     }
 
     public boolean addTcpServer(TcpServerParameters parameters) {

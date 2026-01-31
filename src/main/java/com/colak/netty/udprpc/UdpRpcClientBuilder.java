@@ -87,7 +87,8 @@ public class UdpRpcClientBuilder {
     public UdpRpcClient build() {
         // Provide defaults where possible
         if (nettyManager == null) {
-            nettyManager = NettyManager.newSingleThreadWorker();
+            nettyManager = NettyManager.builder()
+                    .build();
         }
         if (registry == null) {
             registry = new CorrelationResponseRegistry();

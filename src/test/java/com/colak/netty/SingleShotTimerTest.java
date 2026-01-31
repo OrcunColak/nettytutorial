@@ -18,7 +18,8 @@ class SingleShotTimerTest {
 
     @BeforeAll
     static void setup() {
-        nettyManager = NettyManager.newSingleThreadWorker();
+        nettyManager = NettyManager.builder()
+                .build();
     }
 
     @AfterAll

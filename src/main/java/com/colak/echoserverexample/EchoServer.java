@@ -33,7 +33,8 @@ public class EchoServer {
 
     public EchoServer(int port) {
         this.port = port;
-        this.nettyManager = NettyManager.newSingleThreadWorker();
+        this.nettyManager = NettyManager.builder()
+                .build();
     }
 
     public void start() {
