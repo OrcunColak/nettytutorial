@@ -32,18 +32,20 @@ class DefaultRpcCallExecutorTest {
     @Mock
     private CorrelationStrategy correlationStrategy;
 
+    private final Object request = "test-request";
+    private final Object response = "test-response";
+    private final Object correlationKey = "correlation-key";
+    private final CompletableFuture<Object> future = new CompletableFuture<>();
+
+    private final String channelId = "test-channel";
+
     @Test
     void testSuccess() throws Exception {
-        Object request = "test-request";
-        Object correlationKey = "correlation-key";
-
-
-        var executor = new DefaultRpcCallExecutor(nettyManager, "test-channel", registry, correlationStrategy);
+        var executor = new DefaultRpcCallExecutor(nettyManager, channelId, registry, correlationStrategy);
 
         when(correlationStrategy.fromRequest(request)).thenReturn(correlationKey);
 
-        Object response = "test-response";
-        CompletableFuture<Object> future = CompletableFuture.completedFuture(response);
+        future.complete(response);
         when(registry.registerRequest(correlationKey)).thenReturn(future);
 
         RpcCallParameters params = new RpcCallParameters(1, 1000L);
@@ -54,17 +56,13 @@ class DefaultRpcCallExecutorTest {
         // Verify that sendUdpMessage was called twice (2 retry attempts)
         verify(correlationStrategy).fromRequest(request);
         verify(registry).registerRequest(correlationKey);
-        verify(nettyManager).sendUdpMessage("test-channel", request);
+        verify(nettyManager).sendUdpMessage(channelId, request);
         verifyNoMoreInteractions(registry); // No failRequest on success
     }
 
     @Test
     void testTimeout() {
-        Object request = "test-request";
-        Object correlationKey = "correlation-key";
-        CompletableFuture<Object> future = new CompletableFuture<>();
-
-        var executor = new DefaultRpcCallExecutor(nettyManager, "test-channel", registry, correlationStrategy);
+        var executor = new DefaultRpcCallExecutor(nettyManager, channelId, registry, correlationStrategy);
 
         when(correlationStrategy.fromRequest(request)).thenReturn(correlationKey);
         when(registry.registerRequest(correlationKey)).thenReturn(future);
@@ -75,7 +73,7 @@ class DefaultRpcCallExecutorTest {
         assertEquals("No response after 2 attempts", exception.getMessage());
 
         // Verify that sendUdpMessage was called twice (2 retry attempts)
-        verify(nettyManager, times(2)).sendUdpMessage("test-channel", request);
+        verify(nettyManager, times(2)).sendUdpMessage(channelId, request);
         verify(registry).registerRequest(correlationKey);
         verify(registry).failRequest(eq(correlationKey), any(RpcTimeoutException.class));
     }
