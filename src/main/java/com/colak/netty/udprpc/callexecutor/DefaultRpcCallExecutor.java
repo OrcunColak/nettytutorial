@@ -25,7 +25,7 @@ public final class DefaultRpcCallExecutor implements RpcCallExecutor {
         Object key = correlationStrategy.fromRequest(request);
         CompletableFuture<?> future = registerRequest(key);
         try {
-            return executeWithRetries(request, params, future, key);
+            return executeWithRetries(request, params, future);
         } catch (InterruptedException e) {
             RpcTransportException rpcException = new RpcTransportException("RPC interrupted", e);
 
@@ -38,6 +38,9 @@ public final class DefaultRpcCallExecutor implements RpcCallExecutor {
 
             failRequest(key, rpcException);
             throw rpcException;
+        } catch (RpcException e) {
+            failRequest(key, e);
+            throw e;
         } catch (Exception e) {
             RpcTransportException rpcException = new RpcTransportException("RPC failed", e);
 
@@ -47,7 +50,7 @@ public final class DefaultRpcCallExecutor implements RpcCallExecutor {
     }
 
     private Object executeWithRetries(Object request, RpcCallParameters params,
-                                      CompletableFuture<?> future, Object key)
+                                      CompletableFuture<?> future)
             throws RpcTimeoutException, ExecutionException, InterruptedException {
         int attemptLimit = params.attemptLimit();
         long timeoutMillis = params.timeoutMillis();
@@ -59,10 +62,7 @@ public final class DefaultRpcCallExecutor implements RpcCallExecutor {
                 // retry immediately
             }
         }
-        RpcTimeoutException rpcException = new RpcTimeoutException("No response after " + attemptLimit + " attempts");
-
-        registry.failRequest(key, rpcException);
-        throw rpcException;
+        throw new RpcTimeoutException("No response after " + attemptLimit + " attempts");
     }
 
     private CompletableFuture<?> registerRequest(Object key) {
