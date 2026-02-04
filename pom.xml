@@ -18,6 +18,7 @@
         <netty.version>4.2.9.Final</netty.version>
         <slf4j.version>2.0.17</slf4j.version>
         <junit-jupiter.version>6.1.0-M1</junit-jupiter.version>
+        <mockito.version>5.21.0</mockito.version>
     </properties>
 
     <build>
@@ -64,6 +65,14 @@
                 <scope>import</scope>
             </dependency>
 
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-bom</artifactId>
+                <version>${mockito.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -90,6 +99,12 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
 
