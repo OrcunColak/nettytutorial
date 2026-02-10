@@ -15,7 +15,7 @@
         <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
 
         <lombok.version>1.18.42</lombok.version>
-        <netty.version>4.2.9.Final</netty.version>
+        <netty.version>4.2.10.Final</netty.version>
         <slf4j.version>2.0.17</slf4j.version>
         <junit-jupiter.version>6.1.0-M1</junit-jupiter.version>
         <mockito.version>5.21.0</mockito.version>
