@@ -1,4 +1,4 @@
-package com.colak.netty.udprpc.fireexecutor;
+package com.colak.netty.udprpc.executors.fireexecutor;
 
 import com.colak.netty.NettyManager;
 import lombok.RequiredArgsConstructor;
