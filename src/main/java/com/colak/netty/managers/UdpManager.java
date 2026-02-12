@@ -111,6 +111,7 @@ public class UdpManager {
         return result;
     }
 
+    ///  Cancel with timeoutFuture.cancel(false);
     public ScheduledFuture<?> scheduleChannelFixedRateTimer(String channelId,
                                                             FixedRateTimerParameters parameters) {
 
