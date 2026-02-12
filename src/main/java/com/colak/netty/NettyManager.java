@@ -15,6 +15,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.nio.NioIoHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.ScheduledFuture;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -86,6 +87,13 @@ public class NettyManager {
     public boolean sendUdpMessageSync(String channelId, Object message) {
         return udpManager.sendUdpMessageSync(channelId, message);
     }
+
+    public ScheduledFuture<?> scheduleChannelFixedRateTimer(String channelId,
+                                                            FixedRateTimerParameters parameters) {
+
+        return udpManager.scheduleChannelFixedRateTimer(channelId, parameters);
+    }
+
 
     public void scheduleFixedRateTimer(FixedRateTimerParameters parameters) {
         timerManager.scheduleFixedRateTimer(parameters);

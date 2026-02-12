@@ -1,5 +1,6 @@
 package com.colak.netty.managers;
 
+import com.colak.netty.timerparams.FixedRateTimerParameters;
 import com.colak.netty.udpparams.UdpClientParameters;
 import com.colak.netty.udpparams.UdpServerParameters;
 import io.netty.bootstrap.Bootstrap;
@@ -13,6 +14,7 @@ import io.netty.channel.ChannelOutboundHandler;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.util.concurrent.ScheduledFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,7 +111,20 @@ public class UdpManager {
         return result;
     }
 
-    // Send UDP message using an existing channel, target specified in the DatagramPacket
+    public ScheduledFuture<?> scheduleChannelFixedRateTimer(String channelId,
+                                                            FixedRateTimerParameters parameters) {
+
+        Channel channel = channels.get(channelId);
+        if (channel == null || !channel.isActive()) {
+            return null;
+        }
+
+        return channel.eventLoop().scheduleAtFixedRate(parameters.runnable(), parameters.delay(), parameters.period(),
+                parameters.timeUnit());
+    }
+
+
+    /// Send UDP message using an existing channel, target specified in the DatagramPacket
     public boolean sendUdpMessage(String channelId, Object message) {
         boolean channelExists = false;
         Channel channel = channels.get(channelId);
