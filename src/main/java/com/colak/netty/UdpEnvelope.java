@@ -3,6 +3,7 @@ package com.colak.netty;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 @Getter
@@ -23,6 +24,10 @@ public class UdpEnvelope<T> {
         this.payload = payload;
         this.socketAddress = socketAddress;
         this.rawBytes = rawBytes;
+    }
+
+    public InetAddress getAddress() {
+        return socketAddress.getAddress();
     }
 
     @Override
