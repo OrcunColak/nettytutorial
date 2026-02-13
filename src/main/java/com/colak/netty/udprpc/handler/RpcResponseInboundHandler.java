@@ -22,11 +22,11 @@ public class RpcResponseInboundHandler extends SimpleChannelInboundHandler<Objec
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object response) {
         Object key = correlationStrategy.fromResponse(response);
-        if(key != null) {
+        if (key != null) {
             if (correlationStrategy.isErrorResponse(response)) {
                 RpcException rpcPeerException = toPeerException(response);
                 registry.failFromResponse(key, rpcPeerException);
-            }   else {
+            } else {
                 Object completionValue = correlationStrategy.toCompletionValue(response);
                 registry.completeFromResponse(key, completionValue);
             }
