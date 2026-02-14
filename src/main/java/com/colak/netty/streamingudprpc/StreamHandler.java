@@ -1,13 +1,23 @@
 package com.colak.netty.streamingudprpc;
 
 public abstract class StreamHandler<T> {
-
     private final Class<T> messageType;
-    private volatile boolean completed;
+    private volatile boolean closed;
     private volatile boolean timedOut;
+
+    private Runnable terminationCallback;
+    private StreamInactivityTracker tracker;
 
     protected StreamHandler(Class<T> messageType) {
         this.messageType = messageType;
+    }
+
+    void setTerminationCallback(Runnable callback) {
+        this.terminationCallback = callback;
+    }
+
+    public void setTracker(StreamInactivityTracker tracker) {
+        this.tracker = tracker;
     }
 
     /**
@@ -16,30 +26,30 @@ public abstract class StreamHandler<T> {
      */
     @SuppressWarnings("unchecked")
     public final void internalHandleMessage(Object message) {
-        if (completed || timedOut) {
+        if (closed || timedOut) {
             return;
         }
 
         if (!messageType.isInstance(message)) {
-            throw new IllegalArgumentException(
-                    "Invalid message type. Expected: "
-                    + messageType.getName()
-                    + ", but received: "
-                    + message.getClass().getName()
-            );
+            throw new IllegalArgumentException("Invalid message type. Expected: " + messageType.getName()
+                                               + ", but received: " + message.getClass().getName());
         }
 
         T casted = (T) message;
+        tracker.recordActivity();
         onHandleMessage(casted);
     }
 
     /**
      * Framework calls when stream completes normally.
      */
-    public final void complete() {
-        if (!completed && !timedOut) {
-            completed = true;
-            onComplete();
+    public final void terminateStream() {
+        if (!closed && !timedOut) {
+            closed = true;
+            if (terminationCallback != null) {
+                terminationCallback.run();
+            }
+            onStreamClosed();
         }
     }
 
@@ -47,9 +57,12 @@ public abstract class StreamHandler<T> {
      * Framework calls when timeout occurs.
      */
     public final void timeout() {
-        if (!completed && !timedOut) {
+        if (!closed && !timedOut) {
             timedOut = true;
-            onTimeout();
+            if (terminationCallback != null) {
+                terminationCallback.run();
+            }
+            onStreamTimeout();
         }
     }
 
@@ -61,19 +74,18 @@ public abstract class StreamHandler<T> {
     /**
      * User implements this for successful completion.
      */
-    protected abstract void onComplete();
+    protected abstract void onStreamClosed();
 
     /**
      * User implements this for timeout handling.
      */
-    protected abstract void onTimeout();
+    protected abstract void onStreamTimeout();
 
     public boolean isCompleted() {
-        return completed;
+        return closed;
     }
 
     public boolean isTimedOut() {
         return timedOut;
     }
 }
-

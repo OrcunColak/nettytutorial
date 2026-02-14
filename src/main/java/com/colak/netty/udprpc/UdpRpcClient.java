@@ -2,6 +2,8 @@ package com.colak.netty.udprpc;
 
 import com.colak.netty.ChannelSession;
 import com.colak.netty.NettyManager;
+import com.colak.netty.streamingudprpc.StreamHandler;
+import com.colak.netty.streamingudprpc.StreamingUdpRpcClient;
 import com.colak.netty.udpparams.UdpServerParameters;
 import com.colak.netty.udprpc.executors.call.DefaultRpcCallExecutor;
 import com.colak.netty.udprpc.executors.call.RpcCallExecutor;
@@ -70,6 +72,11 @@ public final class UdpRpcClient {
 
         return channelSession;
     }
+
+    public StreamingUdpRpcClient newStreamClient(StreamHandler<?> handler) {
+        return new StreamingUdpRpcClient(channelSession, rpcResponseHandler, rpcExecutor);
+    }
+
 
     public void stop() {
         channelSession.close();

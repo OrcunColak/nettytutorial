@@ -24,7 +24,6 @@ public class UdpChannelSession implements ChannelSession {
         return new NettyChannelScheduler(channel.eventLoop());
     }
 
-
     @Override
     public boolean isInEventLoop() {
         return channel.eventLoop().inEventLoop();
@@ -67,5 +66,4 @@ public class UdpChannelSession implements ChannelSession {
         // means accepted for sending
         return true;
     }
-
 }
