@@ -1,7 +1,7 @@
-package com.colak.netty.udprpc.executors.callexecutor;
+package com.colak.netty.udprpc.executors.call;
 
 import com.colak.netty.ChannelSession;
-import com.colak.netty.NettyManager;
+import com.colak.netty.udprpc.RpcCallParameters;
 import com.colak.netty.udprpc.exception.RpcException;
 import com.colak.netty.udprpc.exception.RpcTimeoutException;
 import com.colak.netty.udprpc.exception.RpcTransportException;
@@ -52,9 +52,9 @@ public final class DefaultRpcCallExecutor implements RpcCallExecutor {
     private Object executeWithRetries(Object request, RpcCallParameters params,
                                       CompletableFuture<?> future)
             throws RpcTimeoutException, ExecutionException, InterruptedException {
-        int attemptLimit = params.attemptLimit();
-        long timeoutMillis = params.timeoutMillis();
-        for (int attempt = 0; attempt < attemptLimit; attempt++) {
+        int maxAttempts = params.getMaxAttempts();
+        long timeoutMillis = params.getTimeoutMillis();
+        for (int attempt = 0; attempt < maxAttempts; attempt++) {
             channelSession.sendMessage(request);
             try {
                 return future.get(timeoutMillis, TimeUnit.MILLISECONDS);
@@ -62,7 +62,7 @@ public final class DefaultRpcCallExecutor implements RpcCallExecutor {
                 // retry immediately
             }
         }
-        throw new RpcTimeoutException("No response after " + attemptLimit + " attempts");
+        throw new RpcTimeoutException("No response after " + maxAttempts + " attempts");
     }
 
     private CompletableFuture<?> registerRequest(Object key) {

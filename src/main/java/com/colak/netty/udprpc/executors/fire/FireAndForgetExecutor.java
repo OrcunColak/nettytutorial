@@ -1,4 +1,4 @@
-package com.colak.netty.udprpc.executors.fireexecutor;
+package com.colak.netty.udprpc.executors.fire;
 
 public interface FireAndForgetExecutor {
 

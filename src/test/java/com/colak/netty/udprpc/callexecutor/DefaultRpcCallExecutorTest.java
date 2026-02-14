@@ -2,8 +2,8 @@ package com.colak.netty.udprpc.callexecutor;
 
 import com.colak.netty.NettyManager;
 import com.colak.netty.udprpc.exception.RpcTimeoutException;
-import com.colak.netty.udprpc.executors.callexecutor.DefaultRpcCallExecutor;
-import com.colak.netty.udprpc.executors.callexecutor.RpcCallParameters;
+import com.colak.netty.udprpc.executors.call.DefaultRpcCallExecutor;
+import com.colak.netty.udprpc.RpcCallParameters;
 import com.colak.netty.udprpc.response.CorrelationResponseRegistry;
 import com.colak.netty.udprpc.response.CorrelationStrategy;
 import org.junit.jupiter.api.Test;

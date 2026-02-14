@@ -1,5 +1,6 @@
-package com.colak.netty.udprpc.executors.callexecutor;
+package com.colak.netty.udprpc.executors.call;
 
+import com.colak.netty.udprpc.RpcCallParameters;
 import com.colak.netty.udprpc.exception.RpcException;
 
 public interface RpcCallExecutor {

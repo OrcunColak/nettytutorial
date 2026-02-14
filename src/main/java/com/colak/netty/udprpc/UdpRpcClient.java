@@ -3,13 +3,13 @@ package com.colak.netty.udprpc;
 import com.colak.netty.ChannelSession;
 import com.colak.netty.NettyManager;
 import com.colak.netty.udpparams.UdpServerParameters;
-import com.colak.netty.udprpc.executors.callexecutor.DefaultRpcCallExecutor;
-import com.colak.netty.udprpc.executors.callexecutor.RpcCallExecutor;
-import com.colak.netty.udprpc.executors.callexecutor.RpcCallParameters;
+import com.colak.netty.udprpc.executors.call.DefaultRpcCallExecutor;
+import com.colak.netty.udprpc.executors.call.RpcCallExecutor;
 import com.colak.netty.udprpc.exception.RpcException;
 import com.colak.netty.udprpc.exception.RpcTransportException;
-import com.colak.netty.udprpc.executors.fireexecutor.DefaultFireAndForgetExecutor;
-import com.colak.netty.udprpc.executors.fireexecutor.FireAndForgetExecutor;
+import com.colak.netty.udprpc.executors.fire.DefaultFireAndForgetExecutor;
+import com.colak.netty.udprpc.executors.fire.FireAndForgetExecutor;
+import com.colak.netty.udprpc.handler.RpcResponseInboundHandler;
 import com.colak.netty.udprpc.managednetty.Managed;
 import com.colak.netty.udprpc.response.CorrelationResponseRegistry;
 import com.colak.netty.udprpc.response.CorrelationStrategy;
@@ -29,7 +29,7 @@ public final class UdpRpcClient {
     private final List<ChannelInboundHandler> inboundDecoders;
     private final List<ChannelInboundHandler> inboundHandlers;
     private final List<ChannelOutboundHandler> outboundEncoders;
-    private final ChannelInboundHandler rpcResponseHandler;
+    private final RpcResponseInboundHandler rpcResponseHandler;
     private final CorrelationResponseRegistry registry;
     private final CorrelationStrategy correlationStrategy;
     private final int maxAttempts;
@@ -83,7 +83,10 @@ public final class UdpRpcClient {
     /// Executes an RPC call without expecting a response type
     public void call(Object request, Duration timeout)
             throws RpcException, InterruptedException {
-        RpcCallParameters callParams = RpcCallParameters.of(maxAttempts, timeout);
+        RpcCallParameters callParams = RpcCallParameters.builder()
+                .maxAttempts(maxAttempts)
+                .timeout(timeout)
+                .build();
         rpcExecutor.executeCall(request, callParams);
         // Ignore the result
     }
@@ -91,24 +94,25 @@ public final class UdpRpcClient {
     /// Executes an RPC call and waits for a typed response
     public <T> T callForObject(Object request, Duration timeout, Class<T> expectedType)
             throws RpcException, InterruptedException {
-        RpcCallParameters callParams = RpcCallParameters.of(maxAttempts, timeout);
+        RpcCallParameters callParams = RpcCallParameters.builder()
+                .maxAttempts(maxAttempts)
+                .timeout(timeout)
+                .build();
         Object result = rpcExecutor.executeCall(request, callParams);
         return castResult(result, expectedType);
     }
 
     /// Executes an RPC call with custom retry and timeout parameters without expecting a response type
-    public void call(Object request, BlockingRpcParameters params)
+    public void call(Object request, RpcCallParameters params)
             throws RpcException, InterruptedException {
-        RpcCallParameters callParams = RpcCallParameters.of(params.maxAttempts(), params.timeout());
-        rpcExecutor.executeCall(request, callParams);
+        rpcExecutor.executeCall(request, params);
         // Ignore the result
     }
 
     /// Executes an RPC call with custom retry and timeout parameters and waits for a typed response
-    public <T> T callForObject(Object request, BlockingRpcParameters params, Class<T> expectedType)
+    public <T> T callForObject(Object request, RpcCallParameters params, Class<T> expectedType)
             throws RpcException, InterruptedException {
-        RpcCallParameters callParams = RpcCallParameters.of(params.maxAttempts(), params.timeout());
-        Object result = rpcExecutor.executeCall(request, callParams);
+        Object result = rpcExecutor.executeCall(request, params);
         return castResult(result, expectedType);
     }
 
