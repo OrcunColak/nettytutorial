@@ -25,18 +25,10 @@ public abstract class StreamHandler<T> {
         }
     }
 
-    /// Called by user code to time out the stream
-    protected final void requestTimeout() {
-        if (timeoutRequest != null) {
-            timeoutRequest.run();
-        }
-    }
-
     @SuppressWarnings("unchecked")
     final void internalHandleMessage(Object message) {
         if (!messageType.isInstance(message)) {
-            throw new IllegalArgumentException(
-                    "Invalid message type: " + message.getClass().getName());
+            throw new IllegalArgumentException("Invalid message type: " + message.getClass().getName());
         }
 
         onHandleMessage((T) message);
