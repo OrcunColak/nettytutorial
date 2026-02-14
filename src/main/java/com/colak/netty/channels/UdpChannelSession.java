@@ -1,6 +1,8 @@
 package com.colak.netty.channels;
 
 import com.colak.netty.ChannelSession;
+import com.colak.netty.NettyScheduler;
+import com.colak.netty.scheduler.eventloop.NettyChannelScheduler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,12 @@ public class UdpChannelSession implements ChannelSession {
     public String getChannelId() {
         return channelId;
     }
+
+    @Override
+    public NettyScheduler createNettyScheduler() {
+        return new NettyChannelScheduler(channel.eventLoop());
+    }
+
 
     @Override
     public boolean isInEventLoop() {

@@ -4,6 +4,8 @@ public interface ChannelSession {
 
     String getChannelId();
 
+    NettyScheduler createNettyScheduler();
+
     boolean close();
 
     boolean isActive();
