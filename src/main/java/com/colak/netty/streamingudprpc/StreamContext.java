@@ -28,10 +28,7 @@ public final class StreamContext<T> {
         this.eventLoop = eventLoop;
         this.timeout = timeout;
 
-        handler.bindLifecycle(
-                this::close,
-                this::timeoutInternal
-        );
+        handler.bindLifecycle(this::close);
     }
 
     public void start() {
@@ -39,13 +36,13 @@ public final class StreamContext<T> {
         scheduleTimeout();
     }
 
-    public void onMessage(Object msg) {
+    public boolean onMessage(Object msg) {
         if (closed || timedOut) {
-            return;
+            return false;
         }
 
         rescheduleTimeout();
-        handler.internalHandleMessage(msg);
+        return handler.internalHandleMessage(msg);
     }
 
     public void close() {
@@ -67,7 +64,6 @@ public final class StreamContext<T> {
     }
 
     // ===== Timeout logic =====
-
     private void scheduleTimeout() {
         timeoutFuture = eventLoop.schedule(this::timeoutInternal, timeout.toMillis(), TimeUnit.MILLISECONDS);
     }

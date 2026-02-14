@@ -5,17 +5,14 @@ public abstract class StreamHandler<T> {
     private final Class<T> messageType;
 
     private Runnable closeRequest;
-    private Runnable timeoutRequest;
 
     protected StreamHandler(Class<T> messageType) {
         this.messageType = messageType;
     }
 
     /// This is called when stream is started
-    void bindLifecycle(Runnable closeRequest,
-                       Runnable timeoutRequest) {
+    void bindLifecycle(Runnable closeRequest) {
         this.closeRequest = closeRequest;
-        this.timeoutRequest = timeoutRequest;
     }
 
     /// Called by user code to close the stream
@@ -26,15 +23,15 @@ public abstract class StreamHandler<T> {
     }
 
     @SuppressWarnings("unchecked")
-    final void internalHandleMessage(Object message) {
+    final boolean internalHandleMessage(Object message) {
         if (!messageType.isInstance(message)) {
             throw new IllegalArgumentException("Invalid message type: " + message.getClass().getName());
         }
 
-        onHandleMessage((T) message);
+        return onHandleMessage((T) message);
     }
 
-    protected abstract void onHandleMessage(T message);
+    protected abstract boolean onHandleMessage(T message);
 
     protected abstract void onStreamClosed();
 
