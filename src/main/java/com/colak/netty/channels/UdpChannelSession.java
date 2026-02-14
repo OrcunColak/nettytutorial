@@ -5,6 +5,7 @@ import com.colak.netty.NettyScheduler;
 import com.colak.netty.scheduler.eventloop.NettyChannelScheduler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.EventLoop;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,6 +18,11 @@ public class UdpChannelSession implements ChannelSession {
     @Override
     public String getChannelId() {
         return channelId;
+    }
+
+    @Override
+    public EventLoop getEventLoop() {
+        return channel.eventLoop();
     }
 
     @Override

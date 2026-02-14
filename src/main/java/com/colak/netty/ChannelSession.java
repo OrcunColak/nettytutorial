@@ -1,8 +1,12 @@
 package com.colak.netty;
 
+import io.netty.channel.EventLoop;
+
 public interface ChannelSession {
 
     String getChannelId();
+
+    EventLoop getEventLoop();
 
     NettyScheduler createNettyScheduler();
 

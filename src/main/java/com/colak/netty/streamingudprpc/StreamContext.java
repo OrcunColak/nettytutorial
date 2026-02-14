@@ -1,36 +1,42 @@
 package com.colak.netty.streamingudprpc;
 
-import com.colak.netty.NettyScheduler;
 import com.colak.netty.udprpc.handler.RpcResponseInboundHandler;
+import io.netty.channel.EventLoop;
+import io.netty.util.concurrent.ScheduledFuture;
 
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 public final class StreamContext<T> {
     private final StreamHandler<T> handler;
     private final RpcResponseInboundHandler responseHandler;
-    private final StreamInactivityTracker tracker;
+    private final EventLoop eventLoop;
+    private final Duration timeout;
 
-    private volatile boolean closed;
-    private volatile boolean timedOut;
+    private ScheduledFuture<?> timeoutFuture;
+
+    private boolean closed;
+    private boolean timedOut;
 
     public StreamContext(StreamHandler<T> handler,
                          RpcResponseInboundHandler responseHandler,
-                         NettyScheduler scheduler,
+                         EventLoop eventLoop,
                          Duration timeout) {
 
         this.handler = handler;
         this.responseHandler = responseHandler;
+        this.eventLoop = eventLoop;
+        this.timeout = timeout;
 
-        this.tracker = new StreamInactivityTracker(
-                scheduler,
-                timeout,
+        handler.bindLifecycle(
+                this::close,
                 this::timeoutInternal
         );
     }
 
     public void start() {
-        responseHandler.setStreamHandler(handler);
-        tracker.start();
+        responseHandler.setStreamContext(this);
+        scheduleTimeout();
     }
 
     public void onMessage(Object msg) {
@@ -38,15 +44,15 @@ public final class StreamContext<T> {
             return;
         }
 
-        tracker.recordActivity();
+        rescheduleTimeout();
         handler.internalHandleMessage(msg);
     }
 
     public void close() {
         if (!closed && !timedOut) {
             closed = true;
-            tracker.stop();
-            responseHandler.unSetStreamHandler(handler);
+            cancelTimeout();
+            responseHandler.clearStreamContext();
             handler.onStreamClosed();
         }
     }
@@ -54,10 +60,27 @@ public final class StreamContext<T> {
     private void timeoutInternal() {
         if (!closed && !timedOut) {
             timedOut = true;
-            tracker.stop();
-            responseHandler.unSetStreamHandler(handler);
+            cancelTimeout();
+            responseHandler.clearStreamContext();
             handler.onStreamTimeout();
         }
     }
-}
 
+    // ===== Timeout logic =====
+
+    private void scheduleTimeout() {
+        timeoutFuture = eventLoop.schedule(this::timeoutInternal, timeout.toMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    private void rescheduleTimeout() {
+        cancelTimeout();
+        scheduleTimeout();
+    }
+
+    private void cancelTimeout() {
+        if (timeoutFuture != null) {
+            timeoutFuture.cancel(false);
+            timeoutFuture = null;
+        }
+    }
+}

@@ -1,8 +1,8 @@
 package com.colak.netty.udprpc.handler;
 
+import com.colak.netty.streamingudprpc.StreamContext;
 import com.colak.netty.udprpc.exception.RpcException;
 import com.colak.netty.udprpc.exception.RpcPeerException;
-import com.colak.netty.streamingudprpc.StreamHandler;
 import com.colak.netty.udprpc.response.CorrelationStrategy;
 import com.colak.netty.udprpc.response.ResponseFutureRegistry;
 import io.netty.channel.ChannelHandlerContext;
@@ -16,27 +16,36 @@ import java.util.concurrent.atomic.AtomicReference;
 public class RpcResponseInboundHandler extends SimpleChannelInboundHandler<Object> {
     private final ResponseFutureRegistry registry;
     private final CorrelationStrategy correlationStrategy;
-    private AtomicReference<StreamHandler<?>> streamHandlerAtomicReference = new AtomicReference<>();
+
+    private final AtomicReference<StreamContext<?>> streamContextRef = new AtomicReference<>();
 
     protected RpcPeerException toPeerException(Object response) {
         return new RpcPeerException("Peer returned error", response);
     }
 
     // Use channel.eventLoop().execute(() -> handler.setStreamHandler(streamHandler));
-    public void setStreamHandler(StreamHandler<?> streamHandler) {
-        streamHandlerAtomicReference.set(streamHandler);
+    public void setStreamContext(StreamContext<?> context) {
+        streamContextRef.set(context);
     }
 
-    public void unSetStreamHandler(StreamHandler<?> streamHandler) {
-        streamHandlerAtomicReference.set(null);
+    /*
+     * Clear active stream context.
+     * Should be called from the EventLoop.
+     */
+    public void clearStreamContext() {
+        streamContextRef.set(null);
+    }
+
+    public StreamContext<?> getStreamContext() {
+        return streamContextRef.get();
     }
 
     // === Core logic ===
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object response) {
-        var streamHandler = streamHandlerAtomicReference.get();
-        if (streamHandler != null) {
-            streamHandler.internalHandleMessage(response);
+        var context = streamContextRef.get();
+        if (context != null) {
+            context.onMessage(response);
         } else {
             Object key = correlationStrategy.fromResponse(response);
             if (key != null) {

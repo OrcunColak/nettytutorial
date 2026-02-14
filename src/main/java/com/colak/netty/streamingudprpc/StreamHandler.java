@@ -1,91 +1,50 @@
 package com.colak.netty.streamingudprpc;
 
 public abstract class StreamHandler<T> {
-    private final Class<T> messageType;
-    private volatile boolean closed;
-    private volatile boolean timedOut;
 
-    private Runnable terminationCallback;
-    private StreamInactivityTracker tracker;
+    private final Class<T> messageType;
+
+    private Runnable closeRequest;
+    private Runnable timeoutRequest;
 
     protected StreamHandler(Class<T> messageType) {
         this.messageType = messageType;
     }
 
-    void setTerminationCallback(Runnable callback) {
-        this.terminationCallback = callback;
+    /// This is called when stream is started
+    void bindLifecycle(Runnable closeRequest,
+                       Runnable timeoutRequest) {
+        this.closeRequest = closeRequest;
+        this.timeoutRequest = timeoutRequest;
     }
 
-    public void setTracker(StreamInactivityTracker tracker) {
-        this.tracker = tracker;
+    /// Called by user code to close the stream
+    protected final void requestClose() {
+        if (closeRequest != null) {
+            closeRequest.run();
+        }
     }
 
-    /**
-     * Called internally by the transport layer.
-     * Performs type check and dispatches to user-defined handler.
-     */
+    /// Called by user code to time out the stream
+    protected final void requestTimeout() {
+        if (timeoutRequest != null) {
+            timeoutRequest.run();
+        }
+    }
+
     @SuppressWarnings("unchecked")
-    public final void internalHandleMessage(Object message) {
-        if (closed || timedOut) {
-            return;
-        }
-
+    final void internalHandleMessage(Object message) {
         if (!messageType.isInstance(message)) {
-            throw new IllegalArgumentException("Invalid message type. Expected: " + messageType.getName()
-                                               + ", but received: " + message.getClass().getName());
+            throw new IllegalArgumentException(
+                    "Invalid message type: " + message.getClass().getName());
         }
 
-        T casted = (T) message;
-        tracker.recordActivity();
-        onHandleMessage(casted);
+        onHandleMessage((T) message);
     }
 
-    /**
-     * Framework calls when stream completes normally.
-     */
-    public final void terminateStream() {
-        if (!closed && !timedOut) {
-            closed = true;
-            if (terminationCallback != null) {
-                terminationCallback.run();
-            }
-            onStreamClosed();
-        }
-    }
-
-    /**
-     * Framework calls when timeout occurs.
-     */
-    public final void timeout() {
-        if (!closed && !timedOut) {
-            timedOut = true;
-            if (terminationCallback != null) {
-                terminationCallback.run();
-            }
-            onStreamTimeout();
-        }
-    }
-
-    /**
-     * User implements this to process messages.
-     */
     protected abstract void onHandleMessage(T message);
 
-    /**
-     * User implements this for successful completion.
-     */
     protected abstract void onStreamClosed();
 
-    /**
-     * User implements this for timeout handling.
-     */
     protected abstract void onStreamTimeout();
-
-    public boolean isCompleted() {
-        return closed;
-    }
-
-    public boolean isTimedOut() {
-        return timedOut;
-    }
 }
