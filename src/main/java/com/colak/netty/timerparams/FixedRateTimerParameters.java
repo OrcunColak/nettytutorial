@@ -1,10 +1,16 @@
 package com.colak.netty.timerparams;
 
+import lombok.Builder;
+import lombok.Getter;
+
 import java.util.concurrent.TimeUnit;
 
-public record FixedRateTimerParameters(String timerId, Runnable runnable, long delay, long period, TimeUnit timeUnit) {
-
-    public FixedRateTimerParameters(String timerId, Runnable runnable, long delay, long period) {
-        this(timerId, runnable, delay, period, TimeUnit.MILLISECONDS);
-    }
+@Getter
+@Builder
+public class FixedRateTimerParameters {
+    private String timerId;
+    private Runnable task;
+    private long delay;
+    private long period;
+    private TimeUnit timeUnit;
 }

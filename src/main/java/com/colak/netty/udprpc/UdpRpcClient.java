@@ -1,5 +1,6 @@
 package com.colak.netty.udprpc;
 
+import com.colak.netty.ChannelSession;
 import com.colak.netty.NettyManager;
 import com.colak.netty.udpparams.UdpServerParameters;
 import com.colak.netty.udprpc.executors.callexecutor.DefaultRpcCallExecutor;
@@ -10,6 +11,8 @@ import com.colak.netty.udprpc.exception.RpcTransportException;
 import com.colak.netty.udprpc.executors.fireexecutor.DefaultFireAndForgetExecutor;
 import com.colak.netty.udprpc.executors.fireexecutor.FireAndForgetExecutor;
 import com.colak.netty.udprpc.managednetty.Managed;
+import com.colak.netty.udprpc.response.CorrelationResponseRegistry;
+import com.colak.netty.udprpc.response.CorrelationStrategy;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelOutboundHandler;
 import lombok.RequiredArgsConstructor;
@@ -26,12 +29,15 @@ public final class UdpRpcClient {
     private final List<ChannelInboundHandler> inboundDecoders;
     private final List<ChannelInboundHandler> inboundHandlers;
     private final List<ChannelOutboundHandler> outboundEncoders;
-    private final int maxAttempts;
     private final ChannelInboundHandler rpcResponseHandler;
+    private final CorrelationResponseRegistry registry;
+    private final CorrelationStrategy correlationStrategy;
+    private final int maxAttempts;
 
     // Executors
-    private final RpcCallExecutor rpcExecutor;
-    private final FireAndForgetExecutor fireExecutor;
+    private ChannelSession channelSession;
+    private RpcCallExecutor rpcExecutor;
+    private FireAndForgetExecutor fireExecutor;
 
     UdpRpcClient(UdpRpcClientBuilder builder) {
         this.nettyResource = builder.nettyResource;
@@ -41,16 +47,13 @@ public final class UdpRpcClient {
         this.inboundDecoders = builder.inboundDecoders;
         this.inboundHandlers = builder.inboundHandlers;
         this.outboundEncoders = builder.outboundEncoders;
-        this.maxAttempts = builder.maxAttempts;
         this.rpcResponseHandler = builder.responseHandler;
-
-        this.rpcExecutor = new DefaultRpcCallExecutor(this.nettyManager, builder.channelId, builder.registry,
-                builder.correlationStrategy);
-
-        this.fireExecutor = new DefaultFireAndForgetExecutor(this.nettyManager, builder.channelId);
+        this.registry = builder.registry;
+        this.correlationStrategy = builder.correlationStrategy;
+        this.maxAttempts = builder.maxAttempts;
     }
 
-    public boolean start() {
+    public ChannelSession start() {
         UdpServerParameters rpcServerParameters = UdpServerParameters.builder()
                 .channelId(channelId)
                 .port(port)
@@ -59,10 +62,17 @@ public final class UdpRpcClient {
                 .addInboundHandlers(inboundHandlers)
                 .addOutboundEncoders(outboundEncoders)
                 .build();
-        return nettyManager.addUdpServer(rpcServerParameters);
+        channelSession = nettyManager.addUdpServer(rpcServerParameters);
+
+        rpcExecutor = new DefaultRpcCallExecutor(channelSession, registry, correlationStrategy);
+
+        fireExecutor = new DefaultFireAndForgetExecutor(channelSession);
+
+        return channelSession;
     }
 
     public void stop() {
+        channelSession.close();
         nettyResource.close();
     }
 
@@ -85,7 +95,6 @@ public final class UdpRpcClient {
         Object result = rpcExecutor.executeCall(request, callParams);
         return castResult(result, expectedType);
     }
-
 
     /// Executes an RPC call with custom retry and timeout parameters without expecting a response type
     public void call(Object request, BlockingRpcParameters params)

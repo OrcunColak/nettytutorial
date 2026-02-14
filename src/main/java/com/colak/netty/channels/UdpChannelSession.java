@@ -1,6 +1,6 @@
-package com.colak.netty.udprpc.channels;
+package com.colak.netty.channels;
 
-import com.colak.netty.udprpc.ChannelSession;
+import com.colak.netty.ChannelSession;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +15,11 @@ public class UdpChannelSession implements ChannelSession {
     @Override
     public String getChannelId() {
         return channelId;
+    }
+
+    @Override
+    public boolean isInEventLoop() {
+        return channel.eventLoop().inEventLoop();
     }
 
     @Override
@@ -55,20 +60,4 @@ public class UdpChannelSession implements ChannelSession {
         return true;
     }
 
-    // @Override
-    // public boolean sendMessageSync(Object message) {
-    //     if (channel.eventLoop().inEventLoop()) {
-    //         throw new IllegalStateException("Blocking sendMessageSync in event loop");
-    //     }
-    //
-    //     boolean result = false;
-    //     try {
-    //         ChannelFuture channelFuture = channel.writeAndFlush(message).sync();
-    //         result = channelFuture.isSuccess();
-    //     } catch (InterruptedException exception) {
-    //         Thread.currentThread().interrupt();
-    //         log.error("Interrupted while sending UDP message {}", channelId, exception);
-    //     }
-    //     return result;
-    // }
 }

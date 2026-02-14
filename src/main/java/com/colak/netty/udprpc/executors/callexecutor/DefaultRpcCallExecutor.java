@@ -1,5 +1,6 @@
 package com.colak.netty.udprpc.executors.callexecutor;
 
+import com.colak.netty.ChannelSession;
 import com.colak.netty.NettyManager;
 import com.colak.netty.udprpc.exception.RpcException;
 import com.colak.netty.udprpc.exception.RpcTimeoutException;
@@ -15,8 +16,7 @@ import java.util.concurrent.TimeoutException;
 
 @RequiredArgsConstructor
 public final class DefaultRpcCallExecutor implements RpcCallExecutor {
-    private final NettyManager nettyManager;
-    private final String channelId;
+    private final ChannelSession channelSession;
     private final CorrelationResponseRegistry registry;
     private final CorrelationStrategy correlationStrategy;
 
@@ -55,7 +55,7 @@ public final class DefaultRpcCallExecutor implements RpcCallExecutor {
         int attemptLimit = params.attemptLimit();
         long timeoutMillis = params.timeoutMillis();
         for (int attempt = 0; attempt < attemptLimit; attempt++) {
-            nettyManager.sendUdpMessage(channelId, request);
+            channelSession.sendMessage(request);
             try {
                 return future.get(timeoutMillis, TimeUnit.MILLISECONDS);
             } catch (TimeoutException ignored) {
