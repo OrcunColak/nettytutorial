@@ -1,35 +1,38 @@
-package com.colak.netty.udprpc;
+package com.colak.netty.udprpc.builder;
 
 import com.colak.netty.NettyManager;
+import com.colak.netty.udprpc.UdpRpcClient;
 import com.colak.netty.udprpc.handler.RpcResponseInboundHandler;
 import com.colak.netty.udprpc.managednetty.Managed;
 import com.colak.netty.udprpc.response.CorrelationResponseRegistry;
 import com.colak.netty.udprpc.response.CorrelationStrategy;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelOutboundHandler;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@Getter
 public class UdpRpcClientBuilder {
     // Required fields
-    Managed<NettyManager> nettyResource;
-    String channelId;
-    Integer port;
+    private Managed<NettyManager> nettyResource;
+    private String channelId;
+    private Integer port;
 
     // Optional fields with defaults
-    final List<ChannelInboundHandler> inboundDecoders = new ArrayList<>();
-    final List<ChannelInboundHandler> inboundHandlers = new ArrayList<>();
-    final List<ChannelOutboundHandler> outboundEncoders = new ArrayList<>();
+    private final List<ChannelInboundHandler> inboundDecoders = new ArrayList<>();
+    private final List<ChannelInboundHandler> inboundHandlers = new ArrayList<>();
+    private final List<ChannelOutboundHandler> outboundEncoders = new ArrayList<>();
     // responseHandler will be created dynamically after CorrelationStrategy is set
-    RpcResponseInboundHandler responseHandler;
-    CorrelationResponseRegistry registry = new CorrelationResponseRegistry();
-    CorrelationStrategy correlationStrategy;
-    int maxAttempts = 3;
-    String threadNamePrefix = "udp-rpc-client-";
+    private RpcResponseInboundHandler responseHandler;
+    private CorrelationResponseRegistry registry = new CorrelationResponseRegistry();
+    private CorrelationStrategy correlationStrategy;
+    private int maxAttempts = 3;
+    private String threadNamePrefix = "udp-rpc-client-";
 
-    UdpRpcClientBuilder() {
+    public UdpRpcClientBuilder() {
     }
 
     public UdpRpcClientBuilder nettyManager(NettyManager nettyManager) {

@@ -4,6 +4,7 @@ import com.colak.netty.ChannelSession;
 import com.colak.netty.NettyManager;
 import com.colak.netty.streamingudprpc.StreamingUdpRpcClient;
 import com.colak.netty.udpparams.UdpServerParameters;
+import com.colak.netty.udprpc.builder.UdpRpcClientBuilder;
 import com.colak.netty.udprpc.executors.call.DefaultRpcCallExecutor;
 import com.colak.netty.udprpc.executors.call.RpcCallExecutor;
 import com.colak.netty.udprpc.exception.RpcException;
@@ -40,18 +41,18 @@ public final class UdpRpcClient {
     private RpcCallExecutor rpcExecutor;
     private FireAndForgetExecutor fireExecutor;
 
-    UdpRpcClient(UdpRpcClientBuilder builder) {
-        this.nettyResource = builder.nettyResource;
-        this.nettyManager = builder.nettyResource.get();
-        this.channelId = builder.channelId;
-        this.port = builder.port;
-        this.inboundDecoders = builder.inboundDecoders;
-        this.inboundHandlers = builder.inboundHandlers;
-        this.outboundEncoders = builder.outboundEncoders;
-        this.rpcResponseHandler = builder.responseHandler;
-        this.registry = builder.registry;
-        this.correlationStrategy = builder.correlationStrategy;
-        this.maxAttempts = builder.maxAttempts;
+    public UdpRpcClient(UdpRpcClientBuilder builder) {
+        this.nettyResource = builder.getNettyResource();
+        this.nettyManager = builder.getNettyResource().get();
+        this.channelId = builder.getChannelId();
+        this.port = builder.getPort();
+        this.inboundDecoders = builder.getInboundDecoders();
+        this.inboundHandlers = builder.getInboundHandlers();
+        this.outboundEncoders = builder.getOutboundEncoders();
+        this.rpcResponseHandler = builder.getResponseHandler();
+        this.registry = builder.getRegistry();
+        this.correlationStrategy = builder.getCorrelationStrategy();
+        this.maxAttempts = builder.getMaxAttempts();
     }
 
     public ChannelSession start() {

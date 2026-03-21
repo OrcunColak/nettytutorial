@@ -1,7 +1,10 @@
-package com.colak.netty.udprpc.annotations;
+package com.colak.netty.udprpc.builder;
 
 import com.colak.netty.udprpc.UdpRpcClient;
-import com.colak.netty.udprpc.UdpRpcClientBuilder;
+import com.colak.netty.udprpc.annotations.RpcCorrelationStrategy;
+import com.colak.netty.udprpc.annotations.RpcDecoder;
+import com.colak.netty.udprpc.annotations.RpcEncoder;
+import com.colak.netty.udprpc.annotations.RpcInboundHandler;
 import com.colak.netty.udprpc.response.CorrelationStrategy;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelOutboundHandler;
@@ -15,7 +18,7 @@ import java.util.stream.Collectors;
 
 public class RpcClientReflectiveBuilder {
 
-    public static UdpRpcClient build(RpcClientConfig config) throws Exception {
+    public static UdpRpcClient build(RpcClientReflectiveConfig config) throws Exception {
         Reflections reflections = new Reflections(config.getScanPackage(), Scanners.TypesAnnotated);
         String clientName = config.getRpcClientName() != null ? config.getRpcClientName() : "";
 
@@ -69,7 +72,7 @@ public class RpcClientReflectiveBuilder {
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(annotation).stream()
                 .filter(c -> {
                     try {
-                        return ((String) c.getMethod("rpcClient").invoke(null)).equals(clientName);
+                        return c.getMethod("rpcClient").invoke(null).equals(clientName);
                     } catch (NoSuchMethodException e) {
                         return true; // backward compatibility if annotation doesn't have rpcClient
                     } catch (Exception ex) {
