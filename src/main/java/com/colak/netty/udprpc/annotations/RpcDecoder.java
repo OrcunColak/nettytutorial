@@ -8,5 +8,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RpcDecoder {
-    int order() default 0; // lower number = first
+    int order() default 1;
+    String rpcClient() default "";
 }

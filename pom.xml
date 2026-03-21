@@ -16,6 +16,7 @@
 
         <lombok.version>1.18.42</lombok.version>
         <netty.version>4.2.10.Final</netty.version>
+        <reflections.version>0.10.2</reflections.version>
         <slf4j.version>2.0.17</slf4j.version>
         <junit-jupiter.version>6.1.0-M1</junit-jupiter.version>
         <mockito.version>5.21.0</mockito.version>
@@ -93,6 +94,12 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.10.2</version>
         </dependency>
 
         <!-- Testing -->
