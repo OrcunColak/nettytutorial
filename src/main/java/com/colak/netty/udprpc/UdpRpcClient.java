@@ -55,7 +55,7 @@ public final class UdpRpcClient {
         this.maxAttempts = builder.getMaxAttempts();
     }
 
-    public ChannelSession start() {
+    public boolean start() {
         UdpServerParameters rpcServerParameters = UdpServerParameters.builder()
                 .channelId(channelId)
                 .port(port)
@@ -70,7 +70,7 @@ public final class UdpRpcClient {
 
         fireExecutor = new DefaultFireAndForgetExecutor(channelSession);
 
-        return channelSession;
+        return channelSession != null;
     }
 
     public StreamingUdpRpcClient newStreamClient() {
