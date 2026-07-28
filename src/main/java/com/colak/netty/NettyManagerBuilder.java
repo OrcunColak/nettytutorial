@@ -3,6 +3,7 @@ package com.colak.netty;
 public class NettyManagerBuilder {
     private int bossThreads = 0;    // means no TCP support
     private int workerThreads = 1;
+    private int offloadSchedulerThreads = 0;
     private String threadNamePrefix = "netty";
 
     NettyManagerBuilder() {
@@ -13,8 +14,23 @@ public class NettyManagerBuilder {
         return this;
     }
 
+    /// Alias for bossThreads
+    public NettyManagerBuilder enableTcp(int bossThreads) {
+        return bossThreads(bossThreads);
+    }
+
+    /// Alias for bossThreads
+    public NettyManagerBuilder disableTcp() {
+        return bossThreads(0);
+    }
+
     public NettyManagerBuilder workerThreads(int workerThreads) {
         this.workerThreads = workerThreads;
+        return this;
+    }
+
+    public NettyManagerBuilder offloadSchedulerThreads(int offloadSchedulerThreads) {
+        this.offloadSchedulerThreads = offloadSchedulerThreads;
         return this;
     }
 
@@ -30,6 +46,9 @@ public class NettyManagerBuilder {
         if (workerThreads <= 0) {
             throw new IllegalStateException("workerThreads must be positive");
         }
+        if (offloadSchedulerThreads <= 0) {
+            throw new IllegalStateException("offloadSchedulerThreads must be positive");
+        }
         return new NettyManager(this);
     }
 
@@ -40,6 +59,10 @@ public class NettyManagerBuilder {
 
     int getWorkerThreads() {
         return workerThreads;
+    }
+
+    int getOffloadSchedulerThreads() {
+        return offloadSchedulerThreads;
     }
 
     String getThreadNamePrefix() {
