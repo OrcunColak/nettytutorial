@@ -12,13 +12,15 @@ public interface OffloadScheduler {
 
     ScheduledFuture<?> scheduleSingleShot(SingleShotTimerParameters params);
 
+    /// Cancel by ID
     boolean cancel(String timerId, boolean mayInterruptIfRunning);
 
+    /// Bulk operations
     void cancelAll(boolean mayInterruptIfRunning);
 
     int activeTimerCount();
 
-    void shutdownAndAwaitTermination();
+    void shutdownAndWait();
 
-    boolean shutdownAndAwaitTermination(long timeout, TimeUnit unit);
+    void shutdownAndWait(long timeout, TimeUnit unit);
 }

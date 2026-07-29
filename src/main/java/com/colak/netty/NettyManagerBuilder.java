@@ -61,6 +61,10 @@ public class NettyManagerBuilder {
         return workerThreads;
     }
 
+    boolean hasOffloadSchedulerThreads() {
+        return offloadSchedulerThreads > 0;
+    }
+
     int getOffloadSchedulerThreads() {
         return offloadSchedulerThreads;
     }

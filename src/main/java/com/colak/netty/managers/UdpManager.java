@@ -2,25 +2,17 @@ package com.colak.netty.managers;
 
 import com.colak.netty.ChannelSession;
 import com.colak.netty.channels.UdpChannelSession;
-import com.colak.netty.timerparams.FixedRateTimerParameters;
-import com.colak.netty.udpparams.UdpClientParameters;
 import com.colak.netty.udpparams.UdpServerParameters;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInboundHandler;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelOutboundHandler;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
-import io.netty.util.concurrent.ScheduledFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -31,7 +23,7 @@ public class UdpManager {
     private final EventLoopGroup workerGroup;
     private final ConcurrentMap<String, Channel> channels = new ConcurrentHashMap<>();
 
-    public ChannelSession addUdpServer(UdpServerParameters parameters) {
+    public ChannelSession createUdpServer(UdpServerParameters parameters) {
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(workerGroup)
                 .channel(NioDatagramChannel.class)

@@ -82,7 +82,7 @@ class StreamingUdpRpcClientTest {
                     }
                 })
                 .build();
-        nettyManager.addUdpServer(udpServerParameters);
+        nettyManager.createUdpServer(udpServerParameters);
 
         List<ChannelOutboundHandler> rpcEncoders = List.of(new StringEncoder(StandardCharsets.UTF_8), new FixedTargetDatagramEncoder(udpPort));
 

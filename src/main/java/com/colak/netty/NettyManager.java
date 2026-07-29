@@ -2,6 +2,8 @@ package com.colak.netty;
 
 import com.colak.netty.managers.UdpManager;
 import com.colak.netty.scheduler.eventloop.NettyGlobalScheduler;
+import com.colak.netty.scheduler.offload.NullOffloadSchedulerImpl;
+import com.colak.netty.scheduler.offload.OffloadSchedulerImpl;
 import com.colak.netty.udpparams.UdpClientParameters;
 import com.colak.netty.udpparams.UdpServerParameters;
 import io.netty.channel.EventLoopGroup;
@@ -17,22 +19,34 @@ public class NettyManager {
     private final EventLoopGroup bossGroup;
     // Shared between TCP and UDP
     private final EventLoopGroup workerGroup;
-
-    private final NettyScheduler globalScheduler;
+    // private final TcpManager tcpManager;
+    private final NettyScheduler nettyScheduler;
     private final UdpManager udpManager;
+    private final OffloadScheduler offloadScheduler;
     private final boolean hasTcpSupport;
 
-    // Package private constructor for builder
+    /// Package private constructor for builder
     NettyManager(NettyManagerBuilder builder) {
-        this.bossGroup = builder.getBossThreads() > 0 ? createEventLoopGroup(builder.getBossThreads(),
-                builder.getThreadNamePrefix() + "-boss") : null;
+        this.bossGroup = builder.getBossThreads() > 0 ?
+                createEventLoopGroup(builder.getBossThreads(), builder.getThreadNamePrefix() + "-boss") : null;
         this.hasTcpSupport = this.bossGroup != null;
 
-        this.workerGroup = createEventLoopGroup(builder.getWorkerThreads(),
-                builder.getThreadNamePrefix() + "-worker");
-
-        this.globalScheduler = new NettyGlobalScheduler(workerGroup);
+        this.workerGroup = createEventLoopGroup(builder.getWorkerThreads(), builder.getThreadNamePrefix() + "-worker");
+        this.nettyScheduler = new NettyGlobalScheduler(workerGroup);
         this.udpManager = new UdpManager(workerGroup);
+        if (builder.hasOffloadSchedulerThreads()) {
+            this.offloadScheduler = new OffloadSchedulerImpl(builder.getOffloadSchedulerThreads(), builder.getThreadNamePrefix());
+        } else {
+            this.offloadScheduler = new NullOffloadSchedulerImpl();
+        }
+    }
+
+    public NettyScheduler getNettyScheduler() {
+        return nettyScheduler;
+    }
+
+    public OffloadScheduler getOffloadScheduler() {
+        return offloadScheduler;
     }
 
     public static NettyManagerBuilder builder() {
@@ -40,7 +54,7 @@ public class NettyManager {
     }
 
     private EventLoopGroup createEventLoopGroup(int threads, String threadNamePrefix) {
-        if (threads < 0) {
+        if (threads <= 0) {
             return null;
         }
         ThreadFactory threadFactory = new DefaultThreadFactory(threadNamePrefix);
@@ -48,17 +62,32 @@ public class NettyManager {
     }
 
 
-    public ChannelSession addUdpServer(UdpServerParameters parameters) {
-        return udpManager.addUdpServer(parameters);
+    public ChannelSession createUdpServer(UdpServerParameters parameters) {
+        return udpManager.createUdpServer(parameters);
     }
 
+    public ChannelSession createUdpClient(UdpClientParameters parameters) {
+        return udpManager.createUdpClient(parameters);
+    }
 
+    public void validateTcpSupport() {
+        if (!hasTcpSupport) {
+            throw new IllegalStateException("TCP functionality not available : TCP support not enabled");
+        }
+    }
+
+    /// Shuts down the server gracefully
     public void shutdown() {
-        globalScheduler.cancelAll();
+        // Stop scheduling new timers
+        offloadScheduler.shutdownAndWait();
+
+        nettyScheduler.cancelAll();
+        // tcpManager.shutdown();
         udpManager.shutdown();
 
-        if (hasTcpSupport) {
-            Future<?> bossFuture = bossGroup.shutdownGracefully();
+        Future<?> bossFuture = null;
+        if (bossGroup != null) {
+            bossFuture = bossGroup.shutdownGracefully();
             bossFuture.syncUninterruptibly();
         }
         Future<?> workerGroupFuture = workerGroup.shutdownGracefully();

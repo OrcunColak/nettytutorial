@@ -6,6 +6,7 @@ import com.colak.netty.timerparams.SingleShotTimerParameters;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -27,18 +28,28 @@ public class OffloadSchedulerImpl implements OffloadScheduler {
             thread.setDaemon(true);
             return thread;
         });
+        this.executor.setRemoveOnCancelPolicy(true);
     }
 
     @Override
     public ScheduledFuture<?> scheduleFixedDelay(FixedDelayTimerParameters params) {
-        return null;
+        Objects.requireNonNull(params, "params must not be null");
+        String timerId = params.getTimerId();
+        if (registry.containsKey(timerId)) {
+            throw new IllegalArgumentException("Timer already exists: " + timerId);
+        }
+        ScheduledFuture<?> future = executor.scheduleWithFixedDelay(params.getTask(), params.getInitialDelay(), params.getDelay(),
+                params.getTimeUnit());
+        registry.put(timerId, future);
+        return future;
     }
 
     @Override
     public ScheduledFuture<?> scheduleSingleShot(SingleShotTimerParameters params) {
+        Objects.requireNonNull(params, "params must not be null");
         String timerId = params.getTimerId();
         if (registry.containsKey(timerId)) {
-            throw new IllegalArgumentException("Timer with id " + timerId + " already exists");
+            throw new IllegalArgumentException("Timer already exists: " + timerId);
         }
 
         Runnable wrapper = () -> {
@@ -53,6 +64,7 @@ public class OffloadSchedulerImpl implements OffloadScheduler {
         return future;
     }
 
+    /// Cancel by ID
     @Override
     public boolean cancel(String timerId, boolean mayInterruptIfRunning) {
         ScheduledFuture<?> future = registry.remove(timerId);
@@ -62,6 +74,7 @@ public class OffloadSchedulerImpl implements OffloadScheduler {
         return false;
     }
 
+    /// Bulk operations
     @Override
     public void cancelAll(boolean mayInterruptIfRunning) {
         registry.forEach((_, future) -> future.cancel(mayInterruptIfRunning));
@@ -74,13 +87,12 @@ public class OffloadSchedulerImpl implements OffloadScheduler {
     }
 
     @Override
-    public void shutdownAndAwaitTermination() {
-        shutdownAndAwaitTermination(30, TimeUnit.SECONDS);
-
+    public void shutdownAndWait() {
+        shutdownAndWait(30, TimeUnit.SECONDS);
     }
 
     @Override
-    public boolean shutdownAndAwaitTermination(long timeout, TimeUnit unit) {
+    public void shutdownAndWait(long timeout, TimeUnit unit) {
         try {
             cancelAll(true);
             executor.shutdown();
@@ -90,6 +102,5 @@ public class OffloadSchedulerImpl implements OffloadScheduler {
         } catch (Exception e) {
             log.error("Error while shutting down offload scheduler", e);
         }
-        return false;
     }
 }

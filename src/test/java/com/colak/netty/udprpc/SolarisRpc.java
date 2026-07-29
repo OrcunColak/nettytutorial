@@ -40,7 +40,7 @@ public class SolarisRpc {
                 })
                 .addOutboundEncoder(new SolarisEncoder())
                 .build();
-        nettyManager.addUdpServer(remoteServer);
+        nettyManager.createUdpServer(remoteServer);
 
         var rpcClient = UdpRpcClient.builder()
                 .nettyManager(nettyManager)

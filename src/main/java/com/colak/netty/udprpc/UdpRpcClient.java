@@ -64,7 +64,7 @@ public final class UdpRpcClient {
                 .addInboundHandlers(inboundHandlers)
                 .addOutboundEncoders(outboundEncoders)
                 .build();
-        channelSession = nettyManager.addUdpServer(rpcServerParameters);
+        channelSession = nettyManager.createUdpServer(rpcServerParameters);
 
         rpcExecutor = new DefaultRpcCallExecutor(channelSession, registry, correlationStrategy);
 
