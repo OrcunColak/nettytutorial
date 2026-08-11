@@ -1,32 +1,35 @@
-package com.colak.netty.tcp.client;
+package com.colak.netty.tcp.server;
 
 import com.colak.netty.tcp.handler.TcpConnectionTracker;
 import com.colak.netty.tcp.handler.TcpExceptionHandler;
-import io.netty.bootstrap.Bootstrap;
+import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelOutboundHandler;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import lombok.RequiredArgsConstructor;
 
-/// Build a Netty Boostrap for TCP client connection
-public class TcpClientBootstrapBuilder {
-    private final EventLoopGroup eventLoopGroup;
+/// Build a Netty ServerBootstrap for TCP server connections.
+@RequiredArgsConstructor
+public class TcpServerBoostrapBuilder {
+    private final EventLoopGroup bossGroup;
+    private final EventLoopGroup workerGroup;
     private final TcpManager tcpManager;
 
-    public Bootstrap build(TcpCllientParameters parameters) {
-        return new Bootstrap()
-                .group(eventLoopGroup)
-                .channel(NioSocketChannel.class)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) parameters.getConnectTimeoutMs())
-                .handler((ChannelInitializer) (socketChannel) -> {
+    public ServerBootstrap bootstrap(TcpServerParameters parameters) {
+        return new ServerBootstrap()
+                .group(bossGroup, workerGroup)
+                .channel(NioServerSocketChannel.class)
+                .option(ChannelOption.SO_REUSEADDR, true)
+                .childHandler((ChannelInitializer) (socketChannel) -> {
                     ChannelPipeline pipeline = socketChannel.pipeline();
-                    for (ChannelInboundHandler handler = parameters.getInboundDecoders()) {
+                    for (ChannelInboundHandler handler : parameters.getInboundDecoders()) {
                         pipeline.addLast(handler);
                     }
-                    TcpConnectionTracker tcpConnectionTracker :new TcpConnectionTracker(tcpManager,
+                    TcpConnectionTracker tcpConnectionTracker = new TcpConnectionTracker(tcpManager,
                             parameters.getChannelId());
                     pipeline.addLast(tcpConnectionTracker);
                     for (ChannelInboundHandler handler : parameters.getInboundHandlers()) {
@@ -39,4 +42,5 @@ public class TcpClientBootstrapBuilder {
                     pipeline.addLast(tcpExceptionHandler);
                 });
     }
+
 }
