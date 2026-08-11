@@ -1,8 +1,8 @@
 package com.colak.netty.scheduler.offload;
 
 import com.colak.netty.core.OffloadScheduler;
-import com.colak.netty.timerparams.FixedDelayTimerParameters;
-import com.colak.netty.timerparams.SingleShotTimerParameters;
+import com.colak.netty.params.FixedDelayTimerParameters;
+import com.colak.netty.params.SingleShotTimerParameters;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.ScheduledFuture;

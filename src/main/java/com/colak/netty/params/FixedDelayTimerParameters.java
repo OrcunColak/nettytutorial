@@ -1,4 +1,4 @@
-package com.colak.netty.timerparams;
+package com.colak.netty.params;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -10,7 +10,6 @@ import java.util.concurrent.TimeUnit;
 @Builder
 public class FixedDelayTimerParameters {
     private final String timerId;
-
     private Runnable task;
 
     @Builder.Default
@@ -22,7 +21,9 @@ public class FixedDelayTimerParameters {
     private TimeUnit timeUnit = TimeUnit.MILLISECONDS;
 
     /// Lombok will generate builder, but we use this constructor to enforce validation
-    public FixedDelayTimerParameters(String timerId, Runnable task, long delay, TimeUnit timeUnit) {
+    private FixedDelayTimerParameters(String timerId, Runnable task,
+                                     long initialDelay,
+                                     long delay, TimeUnit timeUnit) {
         this.timerId = Objects.requireNonNull(timerId, "timer id must not be null");
         this.task = Objects.requireNonNull(task, "task must not be null");
         this.timeUnit = Objects.requireNonNull(timeUnit, "time unit must not be null");
@@ -30,7 +31,7 @@ public class FixedDelayTimerParameters {
         if (timerId.isBlank()) {
             throw new IllegalArgumentException("timer id must not be blank");
         }
-        if (initialDelay <= 0L) {
+        if (initialDelay < 0) {
             throw new IllegalArgumentException("initial delay must be >= 0");
         }
         if (delay <= 0L) {

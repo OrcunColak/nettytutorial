@@ -1,7 +1,7 @@
 package com.colak.netty.core;
 
-import com.colak.netty.timerparams.FixedRateTimerParameters;
-import com.colak.netty.timerparams.SingleShotTimerParameters;
+import com.colak.netty.params.FixedRateTimerParameters;
+import com.colak.netty.params.SingleShotTimerParameters;
 import io.netty.util.concurrent.ScheduledFuture;
 
 public interface NettyScheduler {

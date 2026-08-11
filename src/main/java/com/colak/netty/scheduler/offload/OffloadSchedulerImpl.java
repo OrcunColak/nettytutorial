@@ -1,8 +1,8 @@
 package com.colak.netty.scheduler.offload;
 
 import com.colak.netty.core.OffloadScheduler;
-import com.colak.netty.timerparams.FixedDelayTimerParameters;
-import com.colak.netty.timerparams.SingleShotTimerParameters;
+import com.colak.netty.params.FixedDelayTimerParameters;
+import com.colak.netty.params.SingleShotTimerParameters;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -19,21 +19,23 @@ public class OffloadSchedulerImpl implements OffloadScheduler {
 
     public OffloadSchedulerImpl(int threadCount, String threadNamePrefix) {
         if (threadCount <= 0) {
-            throw new IllegalArgumentException("threadCount must be greater than 0");
+            throw new IllegalArgumentException("threadCount must be > 0");
         }
 
-        this.executor = new ScheduledThreadPoolExecutor(threadCount, r -> {
-            Thread thread = new Thread(r, threadNamePrefix);
-            thread.setName(threadNamePrefix + "-offload-" + thread.threadId());
-            thread.setDaemon(true);
-            return thread;
-        });
+        this.executor = new ScheduledThreadPoolExecutor(threadCount,
+                r -> {
+                    Thread thread = new Thread(r);
+                    thread.setName(threadNamePrefix + "-offload-" + thread.threadId());
+                    thread.setDaemon(true);
+                    return thread;
+                });
         this.executor.setRemoveOnCancelPolicy(true);
     }
 
     @Override
     public ScheduledFuture<?> scheduleFixedDelay(FixedDelayTimerParameters params) {
         Objects.requireNonNull(params, "params must not be null");
+
         String timerId = params.getTimerId();
         if (registry.containsKey(timerId)) {
             throw new IllegalArgumentException("Timer already exists: " + timerId);

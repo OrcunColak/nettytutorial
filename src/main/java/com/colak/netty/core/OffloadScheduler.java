@@ -1,7 +1,7 @@
 package com.colak.netty.core;
 
-import com.colak.netty.timerparams.FixedDelayTimerParameters;
-import com.colak.netty.timerparams.SingleShotTimerParameters;
+import com.colak.netty.params.FixedDelayTimerParameters;
+import com.colak.netty.params.SingleShotTimerParameters;
 
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
