@@ -1,6 +1,6 @@
 package com.colak.netty.streamingudprpc;
 
-import com.colak.netty.ChannelSession;
+import com.colak.netty.core.ChannelSession;
 import com.colak.netty.udprpc.RpcCallParameters;
 import com.colak.netty.udprpc.exception.RpcException;
 import com.colak.netty.udprpc.exception.RpcTransportException;

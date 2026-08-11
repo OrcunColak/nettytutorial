@@ -1,5 +1,7 @@
-package com.colak.netty;
+package com.colak.netty.core;
 
+import com.colak.netty.NettyScheduler;
+import com.colak.netty.OffloadScheduler;
 import com.colak.netty.managers.UdpManager;
 import com.colak.netty.scheduler.eventloop.NettyGlobalScheduler;
 import com.colak.netty.scheduler.offload.NullOffloadSchedulerImpl;
@@ -19,7 +21,7 @@ public class NettyManager {
     private final EventLoopGroup bossGroup;
     // Shared between TCP and UDP
     private final EventLoopGroup workerGroup;
-    // private final TcpManager tcpManager;
+    private final TcpManager tcpManager;
     private final NettyScheduler nettyScheduler;
     private final UdpManager udpManager;
     private final OffloadScheduler offloadScheduler;
@@ -32,6 +34,7 @@ public class NettyManager {
         this.hasTcpSupport = this.bossGroup != null;
 
         this.workerGroup = createEventLoopGroup(builder.getWorkerThreads(), builder.getThreadNamePrefix() + "-worker");
+        this.tcpManager = new TcpManager(bossGroup,workerGroup);
         this.nettyScheduler = new NettyGlobalScheduler(workerGroup);
         this.udpManager = new UdpManager(workerGroup);
         if (builder.hasOffloadSchedulerThreads()) {
@@ -70,6 +73,14 @@ public class NettyManager {
         return udpManager.createUdpClient(parameters);
     }
 
+    public ChannelSession createTcpServer(TcpServerParameters parameters) {
+        return tcpManager.createTcpServer(parameters);
+    }
+
+    public ChannelSession createTcpClient(TcpClientParameters parameters) {
+        return tcpManager.createTcpClient(parameters);
+    }
+
     public void validateTcpSupport() {
         if (!hasTcpSupport) {
             throw new IllegalStateException("TCP functionality not available : TCP support not enabled");
@@ -80,17 +91,19 @@ public class NettyManager {
     public void shutdown() {
         // Stop scheduling new timers
         offloadScheduler.shutdownAndWait();
-
         nettyScheduler.cancelAll();
-        // tcpManager.shutdown();
+
+        tcpManager.shutdown();
         udpManager.shutdown();
 
         Future<?> bossFuture = null;
         if (bossGroup != null) {
             bossFuture = bossGroup.shutdownGracefully();
-            bossFuture.syncUninterruptibly();
         }
         Future<?> workerGroupFuture = workerGroup.shutdownGracefully();
+        if (bossFuture != null) {
+            bossFuture.syncUninterruptibly();
+        }
         workerGroupFuture.syncUninterruptibly();
     }
 }

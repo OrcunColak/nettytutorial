@@ -1,6 +1,6 @@
 package com.colak.netty.managers;
 
-import com.colak.netty.ChannelSession;
+import com.colak.netty.core.ChannelSession;
 import com.colak.netty.channels.UdpChannelSession;
 import com.colak.netty.udpparams.UdpServerParameters;
 import io.netty.bootstrap.Bootstrap;

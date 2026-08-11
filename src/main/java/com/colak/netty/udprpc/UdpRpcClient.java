@@ -1,7 +1,7 @@
 package com.colak.netty.udprpc;
 
-import com.colak.netty.ChannelSession;
-import com.colak.netty.NettyManager;
+import com.colak.netty.core.ChannelSession;
+import com.colak.netty.core.NettyManager;
 import com.colak.netty.streamingudprpc.StreamingUdpRpcClient;
 import com.colak.netty.udpparams.UdpServerParameters;
 import com.colak.netty.udprpc.builder.UdpRpcClientBuilder;

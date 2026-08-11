@@ -1,6 +1,6 @@
 package com.colak.netty.udprpc.executors.fire;
 
-import com.colak.netty.ChannelSession;
+import com.colak.netty.core.ChannelSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

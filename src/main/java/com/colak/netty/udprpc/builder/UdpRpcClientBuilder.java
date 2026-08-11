@@ -1,6 +1,6 @@
 package com.colak.netty.udprpc.builder;
 
-import com.colak.netty.NettyManager;
+import com.colak.netty.core.NettyManager;
 import com.colak.netty.udprpc.UdpRpcClient;
 import com.colak.netty.udprpc.handler.RpcResponseInboundHandler;
 import com.colak.netty.udprpc.managednetty.Managed;
