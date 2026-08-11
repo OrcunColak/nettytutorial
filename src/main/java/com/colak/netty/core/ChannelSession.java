@@ -1,6 +1,5 @@
 package com.colak.netty.core;
 
-import com.colak.netty.NettyScheduler;
 import io.netty.channel.EventLoop;
 
 public interface ChannelSession {

@@ -1,4 +1,4 @@
-package com.colak.netty;
+package com.colak.netty.core;
 
 import com.colak.netty.timerparams.FixedRateTimerParameters;
 import com.colak.netty.timerparams.SingleShotTimerParameters;

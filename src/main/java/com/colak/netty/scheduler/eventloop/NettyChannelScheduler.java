@@ -1,10 +1,9 @@
 package com.colak.netty.scheduler.eventloop;
 
-import com.colak.netty.NettyScheduler;
+import com.colak.netty.core.NettyScheduler;
 import com.colak.netty.timerparams.FixedRateTimerParameters;
 import com.colak.netty.timerparams.SingleShotTimerParameters;
 import io.netty.channel.EventLoop;
-import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.ScheduledFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +21,7 @@ public class NettyChannelScheduler implements NettyScheduler {
     public ScheduledFuture<?> scheduleFixedRateTimer(FixedRateTimerParameters parameters) {
         String timerId = parameters.getTimerId();
         if (timers.containsKey(timerId)) {
-            log.info("Timer with ID {} is already running", timerId);
-            return null;
+            throw new IllegalStateException("Timer already exists: " + timerId);
         }
 
         ScheduledFuture<?> scheduledFuture = eventLoop.scheduleAtFixedRate(parameters.getTask(), parameters.getDelay(),

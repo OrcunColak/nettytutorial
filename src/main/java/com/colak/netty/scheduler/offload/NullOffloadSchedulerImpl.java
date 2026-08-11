@@ -1,6 +1,6 @@
 package com.colak.netty.scheduler.offload;
 
-import com.colak.netty.OffloadScheduler;
+import com.colak.netty.core.OffloadScheduler;
 import com.colak.netty.timerparams.FixedDelayTimerParameters;
 import com.colak.netty.timerparams.SingleShotTimerParameters;
 import lombok.extern.slf4j.Slf4j;

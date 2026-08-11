@@ -1,7 +1,7 @@
 package com.colak.netty.channels;
 
 import com.colak.netty.core.ChannelSession;
-import com.colak.netty.NettyScheduler;
+import com.colak.netty.core.NettyScheduler;
 import com.colak.netty.scheduler.eventloop.NettyChannelScheduler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;

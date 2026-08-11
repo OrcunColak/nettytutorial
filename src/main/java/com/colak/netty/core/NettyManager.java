@@ -1,7 +1,5 @@
 package com.colak.netty.core;
 
-import com.colak.netty.NettyScheduler;
-import com.colak.netty.OffloadScheduler;
 import com.colak.netty.managers.UdpManager;
 import com.colak.netty.scheduler.eventloop.NettyGlobalScheduler;
 import com.colak.netty.scheduler.offload.NullOffloadSchedulerImpl;
