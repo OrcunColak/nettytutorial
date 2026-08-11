@@ -4,6 +4,7 @@ import com.colak.netty.managers.UdpManager;
 import com.colak.netty.scheduler.eventloop.NettyGlobalScheduler;
 import com.colak.netty.scheduler.offload.NullOffloadSchedulerImpl;
 import com.colak.netty.scheduler.offload.OffloadSchedulerImpl;
+import com.colak.netty.tcp.client.TcpClientParameters;
 import com.colak.netty.udpparams.UdpClientParameters;
 import com.colak.netty.udpparams.UdpServerParameters;
 import io.netty.channel.EventLoopGroup;
