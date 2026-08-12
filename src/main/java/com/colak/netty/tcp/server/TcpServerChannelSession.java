@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
 
+import com.colak.netty.tcp.TcpManager;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -65,7 +66,7 @@ public class TcpServerChannelSession implements ChannelSession {
     }
 
     public boolean closeClientConnection(String connectionId) {
-        SocketChannel channel = tcpManager.removeClientChannelId(connectionId);
+        SocketChannel channel = tcpManager.removeClientChannel(connectionId);
         if (channel != null) {
             try {
                 channel.close().sync();

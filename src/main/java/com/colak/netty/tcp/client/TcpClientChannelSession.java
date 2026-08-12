@@ -3,8 +3,10 @@ package com.colak.netty.tcp.client;
 import com.colak.netty.core.ChannelSession;
 import com.colak.netty.core.NettyScheduler;
 import com.colak.netty.scheduler.eventloop.NettyChannelScheduler;
+import com.colak.netty.tcp.TcpManager;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
+import io.netty.channel.socket.SocketChannel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TcpClientChannelSession implements ChannelSession {
     private final String channelId;
+    private final SocketChannel channel;
     private final TcpManager tcpManager;
 
     @Override
@@ -21,13 +24,11 @@ public class TcpClientChannelSession implements ChannelSession {
 
     @Override
     public EventLoop getEventLoop() {
-        Channel channel = tcpManager.getClientChannelId(channelId);
         return channel != null ? channel.eventLoop() : null;
     }
 
     @Override
     public NettyScheduler createNettyScheduler() {
-        Channel channel = tcpManager.getClientChannelId(channelId);
         return channel != null ? new NettyChannelScheduler(channel) : null;
     }
 
@@ -38,20 +39,17 @@ public class TcpClientChannelSession implements ChannelSession {
 
     @Override
     public boolean isActive() {
-        Channel channel = tcpManager.getClientChannelId(channelId);
         return channel != null && channel.isActive();
     }
 
     @Override
     @SuppressWarnings("resource")
     public boolean isInEventLoop() {
-        Channel channel = tcpManager.getClientChannelId(channelId);
         return channel != null && channel.eventLoop().inEventLoop();
     }
 
     @Override
     public boolean sendMessage(Object message) {
-        Channel channel = tcpManager.getClientChannelId(channelId);
         if (channel == null || !channel.isActive()) {
             log.warn("TCP client channel {} is not active", channelId);
             return false;

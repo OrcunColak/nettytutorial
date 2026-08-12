@@ -1,5 +1,7 @@
 package com.colak.netty.tcp.handler;
 
+import com.colak.netty.tcp.TcpEnvelope;
+import com.colak.netty.tcp.TcpManager;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -49,7 +51,7 @@ public class TcpConnectionTracker extends ChannelInboundHandlerAdapter {
             byte[] bytes = new byte[byteBuf.readableBytes()];
             byteBuf.readBytes(bytes);
             byteBuf.release();
-            TcpEnvelope<byte[]> envelope = new TcpEnvelope(bytes, connectionId);
+            TcpEnvelope<byte[]> envelope = new TcpEnvelope<>(bytes, connectionId);
             ctx.fireChannelRead(envelope);
         } else {
             ctx.fireChannelRead(msg);

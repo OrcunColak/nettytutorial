@@ -1,9 +1,9 @@
 package com.colak.netty.udprpc;
 
-import com.colak.netty.udprpc.exception.RpcPeerException;
-import com.colak.netty.udprpc.handler.RpcResponseInboundHandler;
-import com.colak.netty.udprpc.response.CorrelationStrategy;
-import com.colak.netty.udprpc.response.ResponseFutureRegistry;
+import com.colak.netty.udp.rpc.exception.RpcPeerException;
+import com.colak.netty.udp.rpc.handler.RpcResponseInboundHandler;
+import com.colak.netty.udp.rpc.response.CorrelationStrategy;
+import com.colak.netty.udp.rpc.response.ResponseFutureRegistry;
 import io.netty.channel.ChannelHandlerContext;
 
 public class SolarisRpcInboundHandler extends RpcResponseInboundHandler {

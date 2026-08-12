@@ -1,11 +1,11 @@
 package com.colak.netty.streamingudprpc;
 
 import com.colak.netty.core.ChannelSession;
-import com.colak.netty.udprpc.RpcCallParameters;
-import com.colak.netty.udprpc.exception.RpcException;
-import com.colak.netty.udprpc.exception.RpcTransportException;
-import com.colak.netty.udprpc.executors.call.RpcCallExecutor;
-import com.colak.netty.udprpc.handler.RpcResponseInboundHandler;
+import com.colak.netty.udp.rpc.RpcCallParameters;
+import com.colak.netty.udp.rpc.exception.RpcException;
+import com.colak.netty.udp.rpc.exception.RpcTransportException;
+import com.colak.netty.udp.rpc.executors.callexecutor.RpcCallExecutor;
+import com.colak.netty.udp.rpc.handler.RpcResponseInboundHandler;
 import lombok.RequiredArgsConstructor;
 
 import java.time.Duration;

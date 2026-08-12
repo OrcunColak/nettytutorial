@@ -1,0 +1,92 @@
+package com.colak.netty.udp.rpc.executors.callexecutor;
+
+import com.colak.netty.core.ChannelSession;
+import com.colak.netty.udp.rpc.RpcCallParameters;
+import com.colak.netty.udp.rpc.exception.RpcException;
+import com.colak.netty.udp.rpc.exception.RpcTimeoutException;
+import com.colak.netty.udp.rpc.exception.RpcTransportException;
+import com.colak.netty.udp.rpc.response.CorrelationResponseRegistry;
+import com.colak.netty.udp.rpc.response.CorrelationStrategy;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+@Slf4j
+@RequiredArgsConstructor
+public final class DefaultRpcCallExecutor implements RpcCallExecutor {
+    private final ChannelSession channelSession;
+    private final CorrelationResponseRegistry registry;
+    private final CorrelationStrategy correlationStrategy;
+
+    @Override
+    public Object executeCall(Object request, RpcCallParameters params) throws RpcException, InterruptedException {
+        if (channelSession.isInEventLoop()) {
+            throw new IllegalStateException("Cannot perform blocking operation on Netty I/O thread");
+        }
+
+        Object key = correlationStrategy.fromRequest(request);
+        CompletableFuture<?> future = registerRequest(key);
+        try {
+            return executeWithRetries(request, params, future);
+        } catch (InterruptedException e) {
+            RpcTransportException rpcException = new RpcTransportException("RPC interrupted", e);
+
+            failRequest(key, rpcException);
+            Thread.currentThread().interrupt();
+            // rethrow original InterruptedException
+            throw e;
+        } catch (ExecutionException e) {
+            RpcException rpcException = mapExecutionException(e);
+
+            failRequest(key, rpcException);
+            throw rpcException;
+        } catch (RpcException e) {
+            failRequest(key, e);
+            throw e;
+        } catch (Exception e) {
+            RpcTransportException rpcException = new RpcTransportException("RPC failed", e);
+
+            failRequest(key, rpcException);
+            throw rpcException;
+        }
+    }
+
+    private Object executeWithRetries(Object request, RpcCallParameters params,
+                                      CompletableFuture<?> future)
+            throws RpcTimeoutException, ExecutionException, InterruptedException {
+        int maxAttempts = params.getMaxAttempts();
+        long timeoutMillis = params.getTimeoutMillis();
+        for (int attempt = 0; attempt < maxAttempts; attempt++) {
+            channelSession.sendMessage(request);
+            try {
+                return future.get(timeoutMillis, TimeUnit.MILLISECONDS);
+            } catch (TimeoutException ignored) {
+                if (attempt < maxAttempts - 1) {
+                    log.debug("RCP call timed out, retrying... (attempt {}/{})", attempt + 1, maxAttempts);
+                }
+                // retry immediately
+            }
+        }
+        throw new RpcTimeoutException("No response after " + maxAttempts + " attempts");
+    }
+
+    private CompletableFuture<?> registerRequest(Object key) {
+        return registry.registerRequest(key);
+    }
+
+    private void failRequest(Object key, RpcException rpcException) {
+        registry.failRequest(key, rpcException);
+    }
+
+    private RpcException mapExecutionException(ExecutionException e) {
+        Throwable cause = e.getCause();
+        if (cause instanceof RpcException rpc) {
+            return rpc;
+        }
+        return new RpcTransportException("RPC failed due to transport error", cause);
+    }
+}

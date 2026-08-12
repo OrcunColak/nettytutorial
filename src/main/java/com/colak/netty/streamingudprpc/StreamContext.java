@@ -1,6 +1,6 @@
 package com.colak.netty.streamingudprpc;
 
-import com.colak.netty.udprpc.handler.RpcResponseInboundHandler;
+import com.colak.netty.udp.rpc.handler.RpcResponseInboundHandler;
 import io.netty.channel.EventLoop;
 import io.netty.util.concurrent.ScheduledFuture;
 
