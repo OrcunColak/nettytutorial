@@ -1,4 +1,4 @@
-package com.colak.network.udpsender;
+package com.colak.utils.udp.sender.udpsender;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,7 +30,7 @@ public class UdpSender implements AutoCloseable {
         this.originalSoTimeout = datagramSocket.getSoTimeout();
     }
 
-    // Simple send method (fire and forget)
+    /// Simple send method (fire and forget)
     public void send(UdpParams params) {
         validateSocket();
         try {

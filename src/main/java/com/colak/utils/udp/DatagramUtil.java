@@ -1,4 +1,4 @@
-package com.colak.utils;
+package com.colak.utils.udp;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.socket.DatagramPacket;

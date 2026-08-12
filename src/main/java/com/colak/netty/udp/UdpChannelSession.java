@@ -1,4 +1,4 @@
-package com.colak.netty.channels;
+package com.colak.netty.udp;
 
 import com.colak.netty.core.ChannelSession;
 import com.colak.netty.core.NettyScheduler;

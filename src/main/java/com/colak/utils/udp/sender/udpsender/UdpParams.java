@@ -1,4 +1,4 @@
-package com.colak.network.udpsender;
+package com.colak.utils.udp.sender.udpsender;
 
 import lombok.Getter;
 
@@ -12,7 +12,7 @@ public class UdpParams {
     private final byte[] data;
     private final boolean throwOnIOException;
 
-    protected UdpParams(Builder builder) {
+    private UdpParams(Builder builder) {
         this.destinationHost = builder.destinationHost;
         this.destinationPort = builder.destinationPort;
         this.data = builder.data;

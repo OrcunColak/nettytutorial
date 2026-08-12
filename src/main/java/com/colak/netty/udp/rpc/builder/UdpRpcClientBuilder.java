@@ -16,20 +16,21 @@ import java.util.Objects;
 
 @Getter
 public class UdpRpcClientBuilder {
-    // Required fields
+    /// Required fields
     private Managed<NettyManager> nettyResource;
     private String channelId;
     private Integer port;
 
-    // Optional fields with defaults
+    /// Optional fields with defaults
     private final List<ChannelInboundHandler> inboundDecoders = new ArrayList<>();
     private final List<ChannelInboundHandler> inboundHandlers = new ArrayList<>();
     private final List<ChannelOutboundHandler> outboundEncoders = new ArrayList<>();
-    // responseHandler will be created dynamically after CorrelationStrategy is set
+    /// responseHandler will be created dynamically after CorrelationStrategy is set
     private RpcResponseInboundHandler responseHandler;
     private CorrelationResponseRegistry registry = new CorrelationResponseRegistry();
     private CorrelationStrategy correlationStrategy;
     private int maxAttempts = 3;
+    /// thread naming
     private String threadNamePrefix = "udp-rpc-client-";
 
     public UdpRpcClientBuilder() {
@@ -107,17 +108,18 @@ public class UdpRpcClientBuilder {
         if (responseHandler == null) {
             responseHandler = new RpcResponseInboundHandler(registry, correlationStrategy);
         }
+        /// Validate required fields
         validateRequiredFields();
         return new UdpRpcClient(this);
     }
 
     private void validateRequiredFields() {
         if (channelId == null || channelId.isBlank()) {
-            throw new IllegalStateException("channelId must be provided");
+            throw new IllegalArgumentException("channelId must be provided");
         }
         Objects.requireNonNull(port, "port must be provided");
         if (inboundDecoders.isEmpty()) {
-            throw new IllegalStateException("inboundDecoders must be provided");
+            throw new IllegalArgumentException("inboundDecoders must be provided");
         }
         Objects.requireNonNull(correlationStrategy, "correlationStrategy must be provided");
     }

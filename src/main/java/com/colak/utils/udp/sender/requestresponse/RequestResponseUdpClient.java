@@ -1,6 +1,6 @@
-package com.colak.network.requestresponse;
+package com.colak.utils.udp.sender.requestresponse;
 
-import com.colak.network.udpsender.UdpParams;
+import com.colak.utils.udp.sender.udpsender.UdpParams;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

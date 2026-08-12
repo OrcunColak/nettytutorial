@@ -1,4 +1,4 @@
-package com.colak.network.requestresponse;
+package com.colak.utils.udp.sender.requestresponse;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
