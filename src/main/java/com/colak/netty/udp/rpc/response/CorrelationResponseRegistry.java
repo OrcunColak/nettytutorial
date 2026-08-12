@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentMap;
 public final class CorrelationResponseRegistry implements ResponseFutureRegistry {
     private final ConcurrentMap<Object, CompletableFuture<Object>> pending = new ConcurrentHashMap<>();
 
-    // ===== Sender side =====
+    /// ===== Sender side =====
     @Override
     public CompletableFuture<Object> registerRequest(Object key) {
         return pending.computeIfAbsent(key, _ -> new CompletableFuture<>());
@@ -20,7 +20,7 @@ public final class CorrelationResponseRegistry implements ResponseFutureRegistry
         failByKey(key, exception);
     }
 
-    // ===== Inbound side =====
+    /// ===== Inbound side =====
     @Override
     public void completeFromResponse(Object key, Object response) {
         completeByKey(key, response);
@@ -31,7 +31,7 @@ public final class CorrelationResponseRegistry implements ResponseFutureRegistry
         failByKey(key, exception);
     }
 
-    // ===== Internal helpers =====
+    /// ===== Internal helpers =====
     private void completeByKey(Object key, Object response) {
         CompletableFuture<Object> future = pending.remove(key);
         if (future != null) {

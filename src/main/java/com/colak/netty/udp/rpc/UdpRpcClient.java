@@ -2,19 +2,18 @@ package com.colak.netty.udp.rpc;
 
 import com.colak.netty.core.ChannelSession;
 import com.colak.netty.core.NettyManager;
-import com.colak.netty.streamingudprpc.StreamingUdpRpcClient;
-import com.colak.netty.udpparams.UdpServerParameters;
 import com.colak.netty.udp.rpc.builder.UdpRpcClientBuilder;
-import com.colak.netty.udp.rpc.executors.callexecutor.DefaultRpcCallExecutor;
-import com.colak.netty.udp.rpc.executors.callexecutor.RpcCallExecutor;
 import com.colak.netty.udp.rpc.exception.RpcException;
 import com.colak.netty.udp.rpc.exception.RpcTransportException;
+import com.colak.netty.udp.rpc.executors.callexecutor.DefaultRpcCallExecutor;
+import com.colak.netty.udp.rpc.executors.callexecutor.RpcCallExecutor;
 import com.colak.netty.udp.rpc.executors.fireexecutor.DefaultFireAndForgetExecutor;
 import com.colak.netty.udp.rpc.executors.fireexecutor.FireAndForgetExecutor;
 import com.colak.netty.udp.rpc.handler.RpcResponseInboundHandler;
-import com.colak.netty.udp.rpc.managednetty.Managed;
+import com.colak.netty.udp.rpc.managed.Managed;
 import com.colak.netty.udp.rpc.response.CorrelationResponseRegistry;
 import com.colak.netty.udp.rpc.response.CorrelationStrategy;
+import com.colak.netty.udpparams.UdpServerParameters;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelOutboundHandler;
 import lombok.RequiredArgsConstructor;
@@ -25,34 +24,32 @@ import java.util.List;
 @RequiredArgsConstructor
 public final class UdpRpcClient {
     private final Managed<NettyManager> nettyResource;
-    private final NettyManager nettyManager;
     private final String channelId;
     private final int port;
     private final List<ChannelInboundHandler> inboundDecoders;
     private final List<ChannelInboundHandler> inboundHandlers;
     private final List<ChannelOutboundHandler> outboundEncoders;
-    private final RpcResponseInboundHandler rpcResponseHandler;
     private final CorrelationResponseRegistry registry;
     private final CorrelationStrategy correlationStrategy;
+    private final RpcResponseInboundHandler rpcResponseHandler;
     private final int maxAttempts;
 
-    // Executors
     private ChannelSession channelSession;
+    /// Executors
     private RpcCallExecutor rpcExecutor;
     private FireAndForgetExecutor fireExecutor;
 
     public UdpRpcClient(UdpRpcClientBuilder builder) {
         this.nettyResource = builder.getNettyResource();
-        this.nettyManager = builder.getNettyResource().get();
         this.channelId = builder.getChannelId();
         this.port = builder.getPort();
-        this.inboundDecoders = builder.getInboundDecoders();
-        this.inboundHandlers = builder.getInboundHandlers();
-        this.outboundEncoders = builder.getOutboundEncoders();
-        this.rpcResponseHandler = builder.getResponseHandler();
+        this.inboundDecoders = List.copyOf(builder.getInboundDecoders());
+        this.inboundHandlers = List.copyOf(builder.getInboundHandlers());
+        this.outboundEncoders = List.copyOf(builder.getOutboundEncoders());
         this.registry = builder.getRegistry();
         this.correlationStrategy = builder.getCorrelationStrategy();
         this.maxAttempts = builder.getMaxAttempts();
+        this.rpcResponseHandler = builder.getResponseHandler();
     }
 
     public boolean start() {
@@ -64,6 +61,7 @@ public final class UdpRpcClient {
                 .addInboundHandlers(inboundHandlers)
                 .addOutboundEncoders(outboundEncoders)
                 .build();
+        NettyManager nettyManager = nettyResource.get();
         channelSession = nettyManager.createUdpServer(rpcServerParameters);
 
         rpcExecutor = new DefaultRpcCallExecutor(channelSession, registry, correlationStrategy);
@@ -73,10 +71,9 @@ public final class UdpRpcClient {
         return channelSession != null;
     }
 
-    public StreamingUdpRpcClient newStreamClient() {
-        return new StreamingUdpRpcClient(channelSession, rpcResponseHandler, rpcExecutor);
-    }
-
+    // public StreamingUdpRpcClient newStreamClient() {
+    //     return new StreamingUdpRpcClient(channelSession, rpcResponseHandler, rpcExecutor);
+    // }
 
     public void stop() {
         channelSession.close();

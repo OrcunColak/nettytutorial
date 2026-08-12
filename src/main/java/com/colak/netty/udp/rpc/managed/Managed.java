@@ -1,4 +1,4 @@
-package com.colak.netty.udp.rpc.managednetty;
+package com.colak.netty.udp.rpc.managed;
 
 public final class Managed<T> implements AutoCloseable {
     private final T value;

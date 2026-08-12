@@ -3,7 +3,7 @@ package com.colak.netty.udp.rpc.builder;
 import com.colak.netty.core.NettyManager;
 import com.colak.netty.udp.rpc.UdpRpcClient;
 import com.colak.netty.udp.rpc.handler.RpcResponseInboundHandler;
-import com.colak.netty.udp.rpc.managednetty.Managed;
+import com.colak.netty.udp.rpc.managed.Managed;
 import com.colak.netty.udp.rpc.response.CorrelationResponseRegistry;
 import com.colak.netty.udp.rpc.response.CorrelationStrategy;
 import io.netty.channel.ChannelInboundHandler;

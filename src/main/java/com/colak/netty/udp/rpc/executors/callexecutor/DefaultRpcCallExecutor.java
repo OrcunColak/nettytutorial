@@ -59,7 +59,7 @@ public final class DefaultRpcCallExecutor implements RpcCallExecutor {
                                       CompletableFuture<?> future)
             throws RpcTimeoutException, ExecutionException, InterruptedException {
         int maxAttempts = params.getMaxAttempts();
-        long timeoutMillis = params.getTimeoutMillis();
+        long timeoutMillis = params.timeoutMillis();
         for (int attempt = 0; attempt < maxAttempts; attempt++) {
             channelSession.sendMessage(request);
             try {

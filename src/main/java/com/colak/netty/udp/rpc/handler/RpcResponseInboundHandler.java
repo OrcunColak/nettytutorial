@@ -23,15 +23,11 @@ public class RpcResponseInboundHandler extends SimpleChannelInboundHandler<Objec
         return new RpcPeerException("Peer returned error", response);
     }
 
-    // Use channel.eventLoop().execute(() -> handler.setStreamHandler(streamHandler));
     public void setStreamContext(StreamContext<?> context) {
         streamContextRef.set(context);
     }
 
-    /*
-     * Clear active stream context.
-     * Should be called from the EventLoop.
-     */
+    /// Clear active stream context. Should be called from the EventLoop.
     public void clearStreamContext() {
         streamContextRef.set(null);
     }
@@ -40,7 +36,7 @@ public class RpcResponseInboundHandler extends SimpleChannelInboundHandler<Objec
         return streamContextRef.get();
     }
 
-    // === Core logic ===
+    /// === Core logic ===
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object response) {
         var context = streamContextRef.get();
@@ -59,7 +55,6 @@ public class RpcResponseInboundHandler extends SimpleChannelInboundHandler<Objec
                 registry.completeFromResponse(key, completionValue);
             }
         }
-
         // Fire to next handler
         ctx.fireChannelRead(ReferenceCountUtil.retain(response));
     }
