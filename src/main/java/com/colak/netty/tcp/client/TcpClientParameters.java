@@ -20,9 +20,9 @@ public class TcpClientParameters {
     private final long connectTimeoutMs;
     private final boolean autoReconnect;
     private final long reconnectInitialBackoffMs;
-    private final long reconnectBackoffIncrements;
+    private final long reconnectBackoffIncrementsMs;
     private final long reconnectMaxBackoffMs;
-    private final long reconnectMaxRetries;
+    private final Integer reconnectMaxRetries;
 
     private TcpClientParameters(Builder builder) {
         this.channelId = builder.channelId;
@@ -34,7 +34,7 @@ public class TcpClientParameters {
         this.connectTimeoutMs = builder.connectTimeoutMs;
         this.autoReconnect = builder.autoReconnect;
         this.reconnectInitialBackoffMs = builder.reconnectInitialBackoff.toMillis();
-        this.reconnectBackoffIncrements = builder.reconnectBackoffIncrements.toMillis();
+        this.reconnectBackoffIncrementsMs = builder.reconnectBackoffIncrements.toMillis();
         this.reconnectMaxBackoffMs = builder.reconnectMaxBackoff.toMillis();
         this.reconnectMaxRetries = builder.reconnectMaxRetries;
     }

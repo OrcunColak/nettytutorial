@@ -61,7 +61,7 @@ public class OffloadSchedulerImpl implements OffloadScheduler {
                 registry.remove(timerId);
             }
         };
-        ScheduledFuture<?> future = executor.schedule(wrapper, params.getDelay(), params.getTimeUnit());
+        ScheduledFuture<?> future = executor.schedule(wrapper, params.getInitialDelay(), params.getTimeUnit());
         registry.put(timerId, future);
         return future;
     }

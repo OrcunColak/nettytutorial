@@ -33,7 +33,7 @@ public class NettyGlobalScheduler implements NettyScheduler {
 
     @Override
     public ScheduledFuture<?> scheduleSingleShotTimer(SingleShotTimerParameters parameters) {
-        ScheduledFuture<?> scheduledFuture = workerGroup.schedule(parameters.getTask(), parameters.getDelay(), parameters.getTimeUnit());
+        ScheduledFuture<?> scheduledFuture = workerGroup.schedule(parameters.getTask(), parameters.getInitialDelay(), parameters.getTimeUnit());
         scheduledFuture
                 .addListener(future -> {
                     if (!future.isSuccess()) {

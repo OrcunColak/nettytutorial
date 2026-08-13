@@ -16,7 +16,7 @@ public class TcpClientReconnector {
 
     public boolean isMaxRetriesExceeded(TcpClientState state) {
         int currentAttempt = state.getReconnectAttemptCount();
-        Integer maxRetries = state.getParameters().getMaxReconnectRetries();
+        Integer maxRetries = state.getParameters().getReconnectMaxRetries();
         return maxRetries != null && currentAttempt >= maxRetries;
     }
 
@@ -41,14 +41,14 @@ public class TcpClientReconnector {
     /// Called from user thread
     public void stopReconnect(TcpClientState state) {
         state.clearReconnectAttemptCount();
-        state.cancelScheduledReconenct();
+        state.cancelScheduledReconnect();
     }
 
     private long computeReconnectDelayMs(TcpClientState state) {
         var params = state.getParameters();
         int attempt = state.getReconnectAttemptCount();
         return Math.min(
-                params.getReconnectInitialBackoffMs() * (long) attempt * params.getReconnectBackoffIncrementMs(),
+                params.getReconnectInitialBackoffMs() * (long) attempt * params.getReconnectBackoffIncrementsMs(),
                 params.getReconnectMaxBackoffMs());
     }
 }

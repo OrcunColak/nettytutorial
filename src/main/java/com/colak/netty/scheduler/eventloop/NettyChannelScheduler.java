@@ -33,7 +33,7 @@ public class NettyChannelScheduler implements NettyScheduler {
 
     @Override
     public ScheduledFuture<?> scheduleSingleShotTimer(SingleShotTimerParameters parameters) {
-        ScheduledFuture<?> scheduledFuture = eventLoop.schedule(parameters.getTask(), parameters.getDelay(), parameters.getTimeUnit());
+        ScheduledFuture<?> scheduledFuture = eventLoop.schedule(parameters.getTask(), parameters.getInitialDelay(), parameters.getTimeUnit());
         scheduledFuture
                 .addListener(future -> {
                     if (!future.isSuccess()) {
