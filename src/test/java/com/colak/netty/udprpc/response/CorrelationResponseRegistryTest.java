@@ -1,6 +1,6 @@
 package com.colak.netty.udprpc.response;
 
-import com.colak.netty.UdpEnvelope;
+import com.colak.netty.udp.UdpEnvelope;
 import com.colak.netty.udp.rpc.response.CorrelationResponseRegistry;
 import com.colak.netty.udp.rpc.response.CorrelationStrategy;
 import com.colak.netty.udprpc.SolarisKey;

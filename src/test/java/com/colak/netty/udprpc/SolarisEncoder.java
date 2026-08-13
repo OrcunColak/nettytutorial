@@ -1,6 +1,6 @@
 package com.colak.netty.udprpc;
 
-import com.colak.netty.UdpEnvelope;
+import com.colak.netty.udp.UdpEnvelope;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;

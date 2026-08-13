@@ -14,6 +14,7 @@ import com.colak.netty.udp.rpc.managed.Managed;
 import com.colak.netty.udp.rpc.response.CorrelationResponseRegistry;
 import com.colak.netty.udp.rpc.response.CorrelationStrategy;
 import com.colak.netty.udp.server.UdpServerParameters;
+import com.colak.netty.udp.streaming.StreamingUdpRpcClient;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelOutboundHandler;
 import lombok.RequiredArgsConstructor;
@@ -71,9 +72,9 @@ public final class UdpRpcClient {
         return channelSession != null;
     }
 
-    // public StreamingUdpRpcClient newStreamClient() {
-    //     return new StreamingUdpRpcClient(channelSession, rpcResponseHandler, rpcExecutor);
-    // }
+    public StreamingUdpRpcClient newStreamClient() {
+        return new StreamingUdpRpcClient(channelSession, rpcResponseHandler, rpcExecutor);
+    }
 
     public void stop() {
         channelSession.close();

@@ -36,7 +36,7 @@ public class StreamingUdpRpcClient {
         }
     }
 
-    public void stopStream(StreamHandler<?> handler) {
+    public void stopStream() {
         StreamContext<?> ctx = responseHandler.getStreamContext();
         if (ctx != null) {
             ctx.close();

@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 public class UdpChannelSession implements ChannelSession {
     private final String channelId;
     private final Channel channel;
+    private final UdpManager udpManager;
 
     @Override
     public String getChannelId() {
@@ -31,6 +32,11 @@ public class UdpChannelSession implements ChannelSession {
     }
 
     @Override
+    public boolean isActive() {
+        return channel.isActive();
+    }
+
+    @Override
     public boolean isInEventLoop() {
         return channel.eventLoop().inEventLoop();
     }
@@ -40,20 +46,15 @@ public class UdpChannelSession implements ChannelSession {
         if (!channel.isOpen()) {
             return false;
         }
-
         ChannelFuture future = channel.close();
         future.addListener(f -> {
             if (!f.isSuccess()) {
                 log.error("Failed to close UDP channel {}", channelId, f.cause());
             }
         });
+        udpManager.removeChannel(channelId);
         // means "close initiated"
         return true;
-    }
-
-    @Override
-    public boolean isActive() {
-        return channel.isActive();
     }
 
     @Override

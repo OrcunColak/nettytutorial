@@ -101,16 +101,6 @@ class StreamingUdpRpcClientTest {
             protected boolean onHandleMessage(String message) {
                 return false;
             }
-
-            @Override
-            protected void onStreamClosed() {
-
-            }
-
-            @Override
-            protected void onStreamTimeout() {
-                log.info("onStreamTimeout");
-            }
         };
         udpRpcClient.start();
         StreamingUdpRpcClient streamClient = udpRpcClient.newStreamClient();
