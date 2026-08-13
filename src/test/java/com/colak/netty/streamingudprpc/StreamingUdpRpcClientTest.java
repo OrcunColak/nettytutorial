@@ -1,7 +1,7 @@
 package com.colak.netty.streamingudprpc;
 
 import com.colak.netty.core.NettyManager;
-import com.colak.netty.udpparams.UdpServerParameters;
+import com.colak.netty.udp.server.UdpServerParameters;
 import com.colak.netty.udp.rpc.RpcCallParameters;
 import com.colak.netty.udp.rpc.UdpRpcClient;
 import com.colak.netty.udp.rpc.exception.RpcException;

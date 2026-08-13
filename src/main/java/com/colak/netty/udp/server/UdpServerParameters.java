@@ -1,4 +1,4 @@
-package com.colak.netty.udpparams;
+package com.colak.netty.udp.server;
 
 
 import io.netty.channel.ChannelInboundHandler;
@@ -7,6 +7,7 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 public final class UdpServerParameters {
@@ -14,16 +15,14 @@ public final class UdpServerParameters {
     private final int port;
 
     private final List<ChannelInboundHandler> inboundDecoders;
-
     private final List<ChannelInboundHandler> inboundHandlers;
-
     private final List<ChannelOutboundHandler> outboundEncoders;
 
     private UdpServerParameters(Builder builder) {
         this.channelId = builder.channelId;
         this.port = builder.port;
         this.inboundDecoders = List.copyOf(builder.inboundDecoders);
-        this.inboundHandlers = builder.inboundHandlers;
+        this.inboundHandlers = List.copyOf(builder.inboundHandlers);
         this.outboundEncoders = List.copyOf(builder.outboundEncoders);
     }
 
@@ -58,7 +57,6 @@ public final class UdpServerParameters {
         }
 
         public Builder addInboundDecoders(List<ChannelInboundHandler> decoders) {
-            this.inboundDecoders.clear();
             this.inboundDecoders.addAll(decoders);
             return this;
         }
@@ -88,10 +86,9 @@ public final class UdpServerParameters {
             if (channelId == null || channelId.isBlank()) {
                 throw new IllegalStateException("channelId must be provided");
             }
-            if (port == null) {
-                throw new IllegalStateException("port must be provided");
-            }
-            if (inboundHandlers == null) {
+            Objects.requireNonNull(port, "port must be provided");
+
+            if (inboundHandlers.isEmpty()) {
                 throw new IllegalStateException("inboundHandler must be provided");
             }
             return new UdpServerParameters(this);

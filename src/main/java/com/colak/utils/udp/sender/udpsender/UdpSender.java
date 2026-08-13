@@ -13,21 +13,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class UdpSender implements AutoCloseable {
     private final DatagramSocket datagramSocket;
     private final AtomicBoolean closed = new AtomicBoolean(false);
-    private final int originalSoTimeout; // Store original timeout
 
     public UdpSender() throws SocketException {
         this.datagramSocket = new DatagramSocket();
-        this.originalSoTimeout = datagramSocket.getSoTimeout();
     }
 
     public UdpSender(int port) throws SocketException {
         this.datagramSocket = new DatagramSocket(port);
-        this.originalSoTimeout = datagramSocket.getSoTimeout();
     }
 
     public UdpSender(InetSocketAddress address) throws SocketException {
         this.datagramSocket = new DatagramSocket(address);
-        this.originalSoTimeout = datagramSocket.getSoTimeout();
     }
 
     /// Simple send method (fire and forget)

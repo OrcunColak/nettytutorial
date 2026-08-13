@@ -8,7 +8,7 @@ import com.colak.netty.tcp.TcpManager;
 import com.colak.netty.tcp.client.TcpClientParameters;
 import com.colak.netty.tcp.server.TcpServerParameters;
 import com.colak.netty.udp.client.UdpClientParameters;
-import com.colak.netty.udpparams.UdpServerParameters;
+import com.colak.netty.udp.server.UdpServerParameters;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.nio.NioIoHandler;

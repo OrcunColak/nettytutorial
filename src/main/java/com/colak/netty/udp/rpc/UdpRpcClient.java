@@ -13,7 +13,7 @@ import com.colak.netty.udp.rpc.handler.RpcResponseInboundHandler;
 import com.colak.netty.udp.rpc.managed.Managed;
 import com.colak.netty.udp.rpc.response.CorrelationResponseRegistry;
 import com.colak.netty.udp.rpc.response.CorrelationStrategy;
-import com.colak.netty.udpparams.UdpServerParameters;
+import com.colak.netty.udp.server.UdpServerParameters;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelOutboundHandler;
 import lombok.RequiredArgsConstructor;
