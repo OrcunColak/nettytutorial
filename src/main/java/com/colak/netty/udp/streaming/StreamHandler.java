@@ -1,4 +1,4 @@
-package com.colak.netty.streamingudprpc;
+package com.colak.netty.udp.streaming;
 
 public abstract class StreamHandler<T> {
 

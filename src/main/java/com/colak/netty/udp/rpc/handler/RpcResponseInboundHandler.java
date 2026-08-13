@@ -1,6 +1,6 @@
 package com.colak.netty.udp.rpc.handler;
 
-import com.colak.netty.streamingudprpc.StreamContext;
+import com.colak.netty.udp.streaming.StreamContext;
 import com.colak.netty.udp.rpc.exception.RpcException;
 import com.colak.netty.udp.rpc.exception.RpcPeerException;
 import com.colak.netty.udp.rpc.response.CorrelationStrategy;

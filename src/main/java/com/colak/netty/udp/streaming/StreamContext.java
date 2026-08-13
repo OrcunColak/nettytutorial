@@ -1,4 +1,4 @@
-package com.colak.netty.streamingudprpc;
+package com.colak.netty.udp.streaming;
 
 import com.colak.netty.udp.rpc.handler.RpcResponseInboundHandler;
 import io.netty.channel.EventLoop;
