@@ -63,7 +63,7 @@ public final class StreamContext<T> {
         }
     }
 
-    // ===== Timeout logic =====
+    /// ===== Timeout logic =====
     private void scheduleTimeout() {
         timeoutFuture = eventLoop.schedule(this::timeoutInternal, timeout.toMillis(), TimeUnit.MILLISECONDS);
     }

@@ -1,9 +1,7 @@
 package com.colak.netty.udp.streaming;
 
 public abstract class StreamHandler<T> {
-
     private final Class<T> messageType;
-
     private Runnable closeRequest;
 
     protected StreamHandler(Class<T> messageType) {
@@ -33,7 +31,9 @@ public abstract class StreamHandler<T> {
 
     protected abstract boolean onHandleMessage(T message);
 
-    protected abstract void onStreamClosed();
+    protected void onStreamClosed() {
+    }
 
-    protected abstract void onStreamTimeout();
+    protected void onStreamTimeout() {
+    }
 }
