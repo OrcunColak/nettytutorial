@@ -28,6 +28,7 @@ public class TcpManager {
     private final EventLoopGroup workerGroup;
     private final TcpClientReconnector reconnector;
     private final ConcurrentMap<String, ServerSocketChannel> serverChannels = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Boolean> pendingCreations = new ConcurrentHashMap<>();
     /// Active SocketChannel registry: both server-accepted child connections
     /// and direct client connections (user-provided channelId keys)
     private final ConcurrentMap<String, SocketChannel> connections = new ConcurrentHashMap<>();
@@ -72,11 +73,16 @@ public class TcpManager {
     public ChannelSession createTcpServer(TcpServerParameters parameters) {
         String channelId = parameters.getChannelId();
         int port = parameters.getPort();
-        if (serverChannels.containsKey(channelId)) {
-            log.warn("TCP Server {} already exists, returning existing session", channelId);
-            return new TcpServerChannelSession(channelId, serverChannels.get(channelId), this);
-        }
         try {
+            if (pendingCreations.putIfAbsent(channelId, Boolean.TRUE)) {
+                throw new IllegalStateException("Tcp Server '" + channelId + "' is already being created");
+            }
+
+            if (serverChannels.containsKey(channelId)) {
+                log.warn("TCP Server {} already exists, returning existing session", channelId);
+                return new TcpServerChannelSession(channelId, serverChannels.get(channelId), this);
+            }
+
             ServerBootstrap bootstrap = new TcpServerBoostrapBuilder(bossGroup, workerGroup, this)
                     .build(parameters);
             ServerSocketChannel channel = (ServerSocketChannel) bootstrap.bind(port)
@@ -88,28 +94,38 @@ public class TcpManager {
         } catch (InterruptedException e) {
             log.error("Failed to start TCP Server on port {}", channelId, e);
             throw new RuntimeException(e);
+        } finally {
+            pendingCreations.remove(channelId);
         }
     }
 
     public ChannelSession createTcpClient(TcpClientParameters parameters) {
         String channelId = parameters.getChannelId();
         int port = parameters.getPort();
-        if (clientStates.containsKey(channelId)) {
-            log.warn("TCP Client {} already exists, returning existing session", channelId);
-            return new TcpClientChannelSession(channelId, connections.get(channelId), this);
-        }
-        TcpClientState clientState = new TcpClientState(channelId, parameters);
-        clientStates.put(channelId, clientState);
         try {
-            performInitialConnect(parameters);
-        } catch (InterruptedException e) {
-            log.error("Failed to connect TCP Client with Id '{}': {} ", channelId, port, e);
-            if (parameters.isAutoReconnect()) {
-                scheduleReconnect(channelId);
-            } else {
-                clientStates.remove(channelId);
-                throw new RuntimeException(e);
+            if (pendingCreations.putIfAbsent(channelId, Boolean.TRUE)) {
+                throw new IllegalStateException("Tcp Server '" + channelId + "' is already being created");
             }
+            if (clientStates.containsKey(channelId)) {
+                log.warn("TCP Client {} already exists, returning existing session", channelId);
+                return new TcpClientChannelSession(channelId, connections.get(channelId), this);
+            }
+            TcpClientState clientState = new TcpClientState(channelId, parameters);
+            clientStates.put(channelId, clientState);
+            try {
+                performInitialConnect(parameters);
+            } catch (InterruptedException e) {
+                log.error("Failed to connect TCP Client with Id '{}': {} ", channelId, port, e);
+                if (parameters.isAutoReconnect()) {
+                    scheduleReconnect(channelId);
+                } else {
+                    clientStates.remove(channelId);
+                    throw new RuntimeException(e);
+                }
+            }
+            return new TcpClientChannelSession(channelId, connections.get(channelId), this);
+        } finally {
+            pendingCreations.remove(channelId);
         }
     }
 
