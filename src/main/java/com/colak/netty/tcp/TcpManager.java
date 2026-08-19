@@ -108,7 +108,7 @@ public class TcpManager {
             }
             if (clientStates.containsKey(channelId)) {
                 log.warn("TCP Client {} already exists, returning existing session", channelId);
-                return new TcpClientChannelSession(channelId, connections.get(channelId), this);
+                return new TcpClientChannelSession(channelId, this);
             }
             TcpClientState clientState = new TcpClientState(channelId, parameters);
             clientStates.put(channelId, clientState);
@@ -123,7 +123,7 @@ public class TcpManager {
                     throw new RuntimeException(e);
                 }
             }
-            return new TcpClientChannelSession(channelId, connections.get(channelId), this);
+            return new TcpClientChannelSession(channelId, this);
         } finally {
             pendingCreations.remove(channelId);
         }

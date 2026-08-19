@@ -3,6 +3,7 @@ package com.colak.netty.scheduler.eventloop;
 import com.colak.netty.core.NettyScheduler;
 import com.colak.netty.params.FixedRateTimerParameters;
 import com.colak.netty.params.SingleShotTimerParameters;
+import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import io.netty.util.concurrent.ScheduledFuture;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,10 @@ public class NettyChannelScheduler implements NettyScheduler {
     private final EventLoop eventLoop;
     private final ConcurrentMap<String, ScheduledFuture<?>> timers = new ConcurrentHashMap<>();
 
+    public NettyChannelScheduler(Channel channel) {
+        this.eventLoop = channel.eventLoop();
+    }
+
     @Override
     public ScheduledFuture<?> scheduleFixedRateTimer(FixedRateTimerParameters parameters) {
         String timerId = parameters.getTimerId();
@@ -26,6 +31,11 @@ public class NettyChannelScheduler implements NettyScheduler {
 
         ScheduledFuture<?> scheduledFuture = eventLoop.scheduleAtFixedRate(parameters.getTask(), parameters.getInitialDelay(),
                 parameters.getPeriod(), parameters.getTimeUnit());
+        scheduledFuture.addListener(future -> {
+            if (!future.isSuccess()) {
+                log.error("Failed to scheduleFixedRateTimer", future.cause());
+            }
+        });
         timers.put(timerId, scheduledFuture);
         log.info("Timer with ID {} started", timerId);
         return scheduledFuture;
@@ -34,12 +44,11 @@ public class NettyChannelScheduler implements NettyScheduler {
     @Override
     public ScheduledFuture<?> scheduleSingleShotTimer(SingleShotTimerParameters parameters) {
         ScheduledFuture<?> scheduledFuture = eventLoop.schedule(parameters.getTask(), parameters.getInitialDelay(), parameters.getTimeUnit());
-        scheduledFuture
-                .addListener(future -> {
-                    if (!future.isSuccess()) {
-                        log.error("Failed to scheduleSingleShotTimer", future.cause());
-                    }
-                });
+        scheduledFuture.addListener(future -> {
+            if (!future.isSuccess()) {
+                log.error("Failed to scheduleSingleShotTimer", future.cause());
+            }
+        });
         return scheduledFuture;
     }
 
@@ -59,7 +68,7 @@ public class NettyChannelScheduler implements NettyScheduler {
 
     @Override
     public void cancelAll() {
-        timers.forEach((timerId, scheduledFuture) -> cancel(timerId));
+        timers.forEach((timerId, _) -> cancel(timerId));
         timers.clear();
         log.info("All timers stopped");
     }
