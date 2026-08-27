@@ -1,6 +1,7 @@
 package com.colak.netty.udp.rpc.builder;
 
 import com.colak.netty.core.NettyManager;
+import com.colak.netty.udp.rpc.RetryInterceptor;
 import com.colak.netty.udp.rpc.UdpRpcClient;
 import com.colak.netty.udp.rpc.handler.RpcResponseInboundHandler;
 import com.colak.netty.udp.rpc.managed.Managed;
@@ -26,9 +27,10 @@ public class UdpRpcClientBuilder {
     private final List<ChannelInboundHandler> inboundHandlers = new ArrayList<>();
     private final List<ChannelOutboundHandler> outboundEncoders = new ArrayList<>();
     /// responseHandler will be created dynamically after CorrelationStrategy is set
-    private RpcResponseInboundHandler responseHandler;
-    private CorrelationResponseRegistry registry = new CorrelationResponseRegistry();
+    private final CorrelationResponseRegistry registry = new CorrelationResponseRegistry();
     private CorrelationStrategy correlationStrategy;
+    private RpcResponseInboundHandler rpcResponseHandler;
+    private RetryInterceptor retryInterceptor = RetryInterceptor.NOOP;
     private int maxAttempts = 3;
     /// thread naming
     private String threadNamePrefix = "udp-rpc-client-";
@@ -86,6 +88,11 @@ public class UdpRpcClientBuilder {
         return this;
     }
 
+    public UdpRpcClientBuilder retryInterceptor(RetryInterceptor retryInterceptor) {
+        this.retryInterceptor = retryInterceptor;
+        return this;
+    }
+
     public UdpRpcClientBuilder maxAttempts(int maxAttempts) {
         this.maxAttempts = maxAttempts;
         return this;
@@ -105,10 +112,10 @@ public class UdpRpcClientBuilder {
                     .build();
             nettyResource = Managed.owned(nettyManager, nettyManager::shutdown);
         }
-        if (responseHandler == null) {
-            responseHandler = new RpcResponseInboundHandler(registry, correlationStrategy);
+        if (rpcResponseHandler == null) {
+            rpcResponseHandler = new RpcResponseInboundHandler(registry, correlationStrategy);
         }
-        /// Validate required fields
+        // Validate required fields
         validateRequiredFields();
         return new UdpRpcClient(this);
     }

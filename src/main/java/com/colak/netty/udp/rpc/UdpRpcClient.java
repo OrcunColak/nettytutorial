@@ -33,6 +33,7 @@ public final class UdpRpcClient {
     private final CorrelationResponseRegistry registry;
     private final CorrelationStrategy correlationStrategy;
     private final RpcResponseInboundHandler rpcResponseHandler;
+    private final RetryInterceptor retryInterceptor;
     private final int maxAttempts;
 
     private ChannelSession channelSession;
@@ -49,8 +50,9 @@ public final class UdpRpcClient {
         this.outboundEncoders = List.copyOf(builder.getOutboundEncoders());
         this.registry = builder.getRegistry();
         this.correlationStrategy = builder.getCorrelationStrategy();
+        this.rpcResponseHandler = builder.getRpcResponseHandler();
+        this.retryInterceptor = builder.getRetryInterceptor();
         this.maxAttempts = builder.getMaxAttempts();
-        this.rpcResponseHandler = builder.getResponseHandler();
     }
 
     public boolean start() {
@@ -65,7 +67,7 @@ public final class UdpRpcClient {
         NettyManager nettyManager = nettyResource.get();
         channelSession = nettyManager.createUdpServer(rpcServerParameters);
 
-        rpcExecutor = new DefaultRpcCallExecutor(channelSession, registry, correlationStrategy);
+        rpcExecutor = new DefaultRpcCallExecutor(channelSession, registry, correlationStrategy, retryInterceptor);
 
         fireExecutor = new DefaultFireAndForgetExecutor(channelSession);
 
