@@ -1,6 +1,7 @@
 package com.colak.netty.udp.rpc.executors.callexecutor;
 
 import com.colak.netty.core.ChannelSession;
+import com.colak.netty.udp.rpc.RetryInterceptor;
 import com.colak.netty.udp.rpc.RpcCallParameters;
 import com.colak.netty.udp.rpc.exception.RpcException;
 import com.colak.netty.udp.rpc.exception.RpcTimeoutException;
@@ -21,6 +22,7 @@ public final class DefaultRpcCallExecutor implements RpcCallExecutor {
     private final ChannelSession channelSession;
     private final CorrelationResponseRegistry registry;
     private final CorrelationStrategy correlationStrategy;
+    private final RetryInterceptor retryInterceptor;
 
     @Override
     public Object executeCall(Object request, RpcCallParameters params) throws RpcException, InterruptedException {
@@ -55,11 +57,13 @@ public final class DefaultRpcCallExecutor implements RpcCallExecutor {
         }
     }
 
+    /// Executes RPC call with retry logic
     private Object executeWithRetries(Object request, RpcCallParameters params,
                                       CompletableFuture<?> future)
             throws RpcTimeoutException, ExecutionException, InterruptedException {
         int maxAttempts = params.getMaxAttempts();
         long timeoutMillis = params.timeoutMillis();
+
         for (int attempt = 0; attempt < maxAttempts; attempt++) {
             channelSession.sendMessage(request);
             try {
@@ -67,6 +71,7 @@ public final class DefaultRpcCallExecutor implements RpcCallExecutor {
             } catch (TimeoutException ignored) {
                 if (attempt < maxAttempts - 1) {
                     log.debug("RCP call timed out, retrying... (attempt {}/{})", attempt + 1, maxAttempts);
+                    request = retryInterceptor.onRetry(request, attempt + 1);
                 }
                 // retry immediately
             }
