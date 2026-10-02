@@ -74,7 +74,7 @@ public class TcpManager {
         String channelId = parameters.getChannelId();
         int port = parameters.getPort();
         try {
-            if (pendingCreations.putIfAbsent(channelId, Boolean.TRUE)) {
+            if (pendingCreations.putIfAbsent(channelId, Boolean.TRUE) != null) {
                 throw new IllegalStateException("Tcp Server '" + channelId + "' is already being created");
             }
 
@@ -91,9 +91,9 @@ public class TcpManager {
             serverChannels.put(channelId, channel);
             log.info("TCP Server {} started on port {}", channelId, port);
             return new TcpServerChannelSession(channelId, channel, this);
-        } catch (InterruptedException e) {
-            log.error("Failed to start TCP Server on port {}", channelId, e);
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to bind TCP Server '%s' on port %d"
+                    .formatted(channelId, parameters.getPort()), e);
         } finally {
             pendingCreations.remove(channelId);
         }
@@ -103,7 +103,7 @@ public class TcpManager {
         String channelId = parameters.getChannelId();
         int port = parameters.getPort();
         try {
-            if (pendingCreations.putIfAbsent(channelId, Boolean.TRUE)) {
+            if (pendingCreations.putIfAbsent(channelId, Boolean.TRUE) != null) {
                 throw new IllegalStateException("Tcp Server '" + channelId + "' is already being created");
             }
             if (clientStates.containsKey(channelId)) {
@@ -114,13 +114,13 @@ public class TcpManager {
             clientStates.put(channelId, clientState);
             try {
                 performInitialConnect(parameters);
-            } catch (InterruptedException e) {
-                log.error("Failed to connect TCP Client with Id '{}': {} ", channelId, port, e);
+            } catch (Exception e) {
                 if (parameters.isAutoReconnect()) {
                     scheduleReconnect(channelId);
                 } else {
                     clientStates.remove(channelId);
-                    throw new RuntimeException(e);
+                    throw new RuntimeException("Failed to connect TCP Client '%s' to %s:%d"
+                            .formatted(channelId, parameters.getHost(), port), e);
                 }
             }
             return new TcpClientChannelSession(channelId, this);
