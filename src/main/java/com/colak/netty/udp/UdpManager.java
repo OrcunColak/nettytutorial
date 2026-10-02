@@ -24,7 +24,7 @@ public class UdpManager {
     public ChannelSession createUdpServer(UdpServerParameters parameters) {
         String channelId = parameters.getChannelId();
         try {
-            if (pendingCreations.putIfAbsent(channelId, Boolean.TRUE)) {
+            if (pendingCreations.putIfAbsent(channelId, Boolean.TRUE) != null) {
                 throw new IllegalStateException("UDP client '" + channelId + "' is already being created");
             }
             Bootstrap bootstrap = new UdpServerBootstrapBuilder(workerGroup)
@@ -36,9 +36,9 @@ public class UdpManager {
             ChannelSession channelSession = new UdpChannelSession(channelId, channel, this);
             log.info("UDP Server with ID {} started", channelId);
             return channelSession;
-        } catch (InterruptedException e) {
-            log.error("Failed to add UDP Server", e);
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to bind UDP server '%s' on port '%d'".formatted(channelId, parameters.getPort()),
+                    e);
         } finally {
             pendingCreations.remove(channelId);
         }
@@ -47,10 +47,12 @@ public class UdpManager {
     public ChannelSession createUdpClient(UdpClientParameters parameters) {
         String channelId = parameters.getChannelId();
         try {
-            if (pendingCreations.putIfAbsent(channelId, Boolean.TRUE)) {
+            if (pendingCreations.putIfAbsent(channelId, Boolean.TRUE) != null) {
                 throw new IllegalStateException("UDP client '" + channelId + "' is already being created");
             }
-
+            if (channels.containsKey(channelId)) {
+                throw new IllegalStateException("UDP client '" + channelId + "' already exists");
+            }
             Bootstrap bootstrap = new UdpClientBootstrapBuilder(workerGroup)
                     .build(parameters);
 
@@ -60,9 +62,8 @@ public class UdpManager {
             ChannelSession channelSession = new UdpChannelSession(channelId, channel, this);
             log.info("UDP client added with channel ID: {}", channelId);
             return channelSession;
-        } catch (InterruptedException e) {
-            log.error("Failed to add UDP client", e);
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to bind UDP client '%s'".formatted(channelId), e);
         } finally {
             pendingCreations.remove(channelId);
         }
